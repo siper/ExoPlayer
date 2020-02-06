@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import android.os.Handler;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.MediaSource.MediaPeriodId;
@@ -34,6 +35,7 @@ import com.google.android.exoplayer2.testutil.FakeTimeline;
 import com.google.android.exoplayer2.testutil.FakeTimeline.TimelineWindowDefinition;
 import com.google.android.exoplayer2.testutil.MediaSourceTestRunner;
 import com.google.android.exoplayer2.testutil.TimelineAsserts;
+import com.google.android.exoplayer2.util.FakePlayer;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,11 +54,13 @@ public final class ConcatenatingMediaSourceTest {
 
   private ConcatenatingMediaSource mediaSource;
   private MediaSourceTestRunner testRunner;
+  private ExoPlayer player;
 
   @Before
   public void setUp() throws Exception {
     mediaSource = new ConcatenatingMediaSource(/* isAtomic= */ false, new FakeShuffleOrder(0));
     testRunner = new MediaSourceTestRunner(mediaSource, null);
+    player = new FakePlayer();
   }
 
   @After
@@ -630,7 +634,7 @@ public final class ConcatenatingMediaSourceTest {
           () -> {
             MediaSourceCaller caller = mock(MediaSourceCaller.class);
             mediaSource.addMediaSources(Arrays.asList(createMediaSources(2)));
-            mediaSource.prepareSource(caller, /* mediaTransferListener= */ null);
+            mediaSource.prepareSource(caller, /* mediaTransferListener= */ null, player);
             mediaSource.moveMediaSource(
                 /* currentIndex= */ 0,
                 /* newIndex= */ 1,

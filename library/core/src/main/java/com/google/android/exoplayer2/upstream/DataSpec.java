@@ -35,14 +35,17 @@ public final class DataSpec {
 
   /**
    * The flags that apply to any request for data. Possible flag values are {@link
-   * #FLAG_ALLOW_GZIP}, {@link #FLAG_DONT_CACHE_IF_LENGTH_UNKNOWN} and {@link
-   * #FLAG_ALLOW_CACHE_FRAGMENTATION}.
+   * #FLAG_ALLOW_GZIP}, {@link #FLAG_DONT_CACHE_IF_LENGTH_UNKNOWN}
+   * , {@link #FLAG_ALLOW_CACHE_FRAGMENTATION} and {@link #FLAG_FORCE_BOUND_LOCAL_ADDRESS}
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
-  @IntDef(
-      flag = true,
-      value = {FLAG_ALLOW_GZIP, FLAG_DONT_CACHE_IF_LENGTH_UNKNOWN, FLAG_ALLOW_CACHE_FRAGMENTATION})
+  @IntDef(flag = true, value = {
+      FLAG_ALLOW_GZIP,
+      FLAG_DONT_CACHE_IF_LENGTH_UNKNOWN,
+      FLAG_ALLOW_CACHE_FRAGMENTATION,
+      FLAG_FORCE_BOUND_LOCAL_ADDRESS
+  })
   public @interface Flags {}
   /**
    * Allows an underlying network stack to request that the server use gzip compression.
@@ -65,6 +68,11 @@ public final class DataSpec {
    * whilst writing another).
    */
   public static final int FLAG_ALLOW_CACHE_FRAGMENTATION = 1 << 2; // 4
+
+  /**
+   * Force the source to bound to local address.
+   */
+  public static final int FLAG_FORCE_BOUND_LOCAL_ADDRESS = 1 << 8; // 16
 
   /**
    * The set of HTTP methods that are supported by ExoPlayer {@link HttpDataSource}s. One of {@link

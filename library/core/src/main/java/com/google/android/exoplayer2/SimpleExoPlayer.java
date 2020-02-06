@@ -443,7 +443,7 @@ public class SimpleExoPlayer extends BasePlayer
 
     // Build the player and associated objects.
     player =
-        new ExoPlayerImpl(renderers, trackSelector, loadControl, bandwidthMeter, clock, looper);
+        new ExoPlayerImpl(renderers, trackSelector, loadControl, bandwidthMeter, clock, looper, this);
     analyticsCollector.setPlayer(player);
     addListener(analyticsCollector);
     addListener(componentListener);

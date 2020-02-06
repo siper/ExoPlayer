@@ -25,6 +25,7 @@ import com.google.android.exoplayer2.extractor.ExtractorOutput;
 import com.google.android.exoplayer2.testutil.FakeExtractorOutput;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
+import com.google.android.exoplayer2.util.TrackIdGenerator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +48,7 @@ public final class SectionReaderTest {
     payloadReader = new CustomSectionPayloadReader();
     reader = new SectionReader(payloadReader);
     reader.init(new TimestampAdjuster(0), new FakeExtractorOutput(),
-        new TsPayloadReader.TrackIdGenerator(0, 1));
+        new TrackIdGenerator(0, 1));
   }
 
   @Test
@@ -193,7 +194,7 @@ public final class SectionReaderTest {
 
     @Override
     public void init(TimestampAdjuster timestampAdjuster, ExtractorOutput extractorOutput,
-        TsPayloadReader.TrackIdGenerator idGenerator) {
+        TrackIdGenerator idGenerator) {
       parsedTableIds = new ArrayList<>();
     }
 

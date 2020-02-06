@@ -36,6 +36,7 @@ import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.Util;
 import java.util.ArrayDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * An {@link ExoPlayer} implementation. Instances can be obtained from {@link ExoPlayer.Builder}.
@@ -60,6 +61,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
   private final Handler internalPlayerHandler;
   private final CopyOnWriteArrayList<ListenerHolder> listeners;
   private final Timeline.Period period;
+  private final VideoComponent videoComponent;
   private final ArrayDeque<Runnable> pendingListenerNotifications;
 
   private MediaSource mediaSource;
@@ -102,6 +104,30 @@ import java.util.concurrent.CopyOnWriteArrayList;
       BandwidthMeter bandwidthMeter,
       Clock clock,
       Looper looper) {
+    this(renderers, trackSelector, loadControl, bandwidthMeter, clock, looper, null);
+  }
+
+  /**
+   * Constructs an instance. Must be called from a thread that has an associated {@link Looper}.
+   *
+   * @param renderers The {@link Renderer}s that will be used by the instance.
+   * @param trackSelector The {@link TrackSelector} that will be used by the instance.
+   * @param loadControl The {@link LoadControl} that will be used by the instance.
+   * @param bandwidthMeter The {@link BandwidthMeter} that will be used by the instance.
+   * @param clock The {@link Clock} that will be used by the instance.
+   * @param looper The {@link Looper} which must be used for all calls to the player and which is
+   *     used to call listeners on.
+   * @param videoComponent The {@link VideoComponent} that will be used by the instance.
+   */
+  @SuppressLint("HandlerLeak")
+  public ExoPlayerImpl(
+     Renderer[] renderers,
+      TrackSelector trackSelector,
+      LoadControl loadControl,
+      BandwidthMeter bandwidthMeter,
+      Clock clock,
+      Looper looper,
+      VideoComponent videoComponent) {
     Log.i(TAG, "Init " + Integer.toHexString(System.identityHashCode(this)) + " ["
         + ExoPlayerLibraryInfo.VERSION_SLASHY + "] [" + Util.DEVICE_DEBUG_INFO + "]");
     Assertions.checkState(renderers.length > 0);
@@ -110,6 +136,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
     this.playWhenReady = false;
     this.repeatMode = Player.REPEAT_MODE_OFF;
     this.shuffleModeEnabled = false;
+    this.videoComponent = videoComponent;
     this.listeners = new CopyOnWriteArrayList<>();
     emptyTrackSelectorResult =
         new TrackSelectorResult(
@@ -153,7 +180,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
   @Override
   @Nullable
   public VideoComponent getVideoComponent() {
-    return null;
+    return videoComponent;
   }
 
   @Override
@@ -238,7 +265,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
     // because it uses a callback.
     hasPendingPrepare = true;
     pendingOperationAcks++;
-    internalPlayer.prepare(mediaSource, resetPosition, resetState);
+    internalPlayer.prepare(mediaSource, resetPosition, resetState, this);
     updatePlaybackInfo(
         playbackInfo,
         /* positionDiscontinuity= */ false,
