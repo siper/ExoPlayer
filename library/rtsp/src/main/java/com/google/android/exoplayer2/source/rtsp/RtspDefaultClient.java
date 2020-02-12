@@ -31,8 +31,9 @@ public final class RtspDefaultClient extends Client {
 
     public static Factory<RtspDefaultClient> factory() {
         return new Factory<RtspDefaultClient>() {
-            private @Flags int flags;
             private @Mode int mode;
+            private @Flags int flags;
+            private @AVOptions int avOptions;
             private @NatMethod int natMethod;
 
             public Factory<RtspDefaultClient> setFlags(@Flags int flags) {
@@ -42,6 +43,11 @@ public final class RtspDefaultClient extends Client {
 
             public Factory<RtspDefaultClient> setMode(@Mode int mode) {
                 this.mode = mode;
+                return this;
+            }
+
+            public Factory<RtspDefaultClient> setAVOptions(@AVOptions int avOptions) {
+                this.avOptions = avOptions;
                 return this;
             }
 
@@ -55,6 +61,7 @@ public final class RtspDefaultClient extends Client {
                         .setUserAgent(USER_AGENT)
                         .setFlags(flags)
                         .setMode((mode < builder.mode) ? builder.mode : mode)
+                        .setAvOptions(avOptions)
                         .setNatMethod(natMethod));
             }
         };
