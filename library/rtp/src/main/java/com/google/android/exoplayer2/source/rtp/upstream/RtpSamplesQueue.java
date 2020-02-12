@@ -98,10 +98,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
             deadlineTimestamp += packet.timestamp();
 
             if (nowTimestamp >= deadlineTimestamp) {
-                statsInfo.baseSequence = packet.sequenceNumber();
+                return packet;
             }
-
-            return packet;
         }
 
         return null;
