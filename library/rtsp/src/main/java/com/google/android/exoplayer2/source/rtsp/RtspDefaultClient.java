@@ -31,6 +31,7 @@ public final class RtspDefaultClient extends Client {
 
     public static Factory<RtspDefaultClient> factory() {
         return new Factory<RtspDefaultClient>() {
+            private int bufferSize;
             private @Mode int mode;
             private @Flags int flags;
             private @AVOptions int avOptions;
@@ -51,6 +52,11 @@ public final class RtspDefaultClient extends Client {
                 return this;
             }
 
+            public Factory<RtspDefaultClient> setBufferSize(int bufferSize) {
+                this.bufferSize = bufferSize;
+                return this;
+            }
+
             public Factory<RtspDefaultClient> setNatMethod(@NatMethod int natMethod) {
                 this.natMethod = natMethod;
                 return this;
@@ -60,6 +66,8 @@ public final class RtspDefaultClient extends Client {
                 return new RtspDefaultClient(builder
                         .setUserAgent(USER_AGENT)
                         .setFlags(flags)
+                        .setBufferSize(bufferSize < Client.MIN_DATAGRAM_PACKET_SIZE ?
+                            Client.MIN_DATAGRAM_PACKET_SIZE : bufferSize)
                         .setMode((mode < builder.mode) ? builder.mode : mode)
                         .setAvOptions(avOptions)
                         .setNatMethod(natMethod));

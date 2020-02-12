@@ -121,6 +121,7 @@ public final class RtspSampleStreamWrapper implements
 
     private final ConditionVariable loadCondition;
 
+    private final int bufferSize;
     private final long positionUs;
     private final Allocator allocator;
     private final MediaSession session;
@@ -168,12 +169,14 @@ public final class RtspSampleStreamWrapper implements
     private final DrmSessionManager<?> drmSessionManager;
 
     public RtspSampleStreamWrapper(MediaSession session, MediaTrack track,
-                                   TrackIdGenerator trackIdGenerator, long positionUs,
-                                   EventListener listener, TransferListener transferListener,
-                                   Allocator allocator, DrmSessionManager<?> drmSessionManager) {
+        TrackIdGenerator trackIdGenerator, long positionUs, int bufferSize, EventListener listener,
+        TransferListener transferListener, Allocator allocator,
+        DrmSessionManager<?> drmSessionManager) {
+
         this.session = session;
         this.track = track;
         this.trackIdGenerator = trackIdGenerator;
+        this.bufferSize = bufferSize;
         this.positionUs = positionUs;
         this.listener = listener;
         this.transferListener = transferListener;
@@ -745,12 +748,6 @@ public final class RtspSampleStreamWrapper implements
     }
 
     /* package */ abstract class MediaStreamLoadable implements Loader.Loadable {
-        /**
-         * The maximum length of an datagram data packet size, in bytes.
-         * 65535 bytes minus IP header (20 bytes) and UDP header (8 bytes)
-         */
-        public static final int MAX_UDP_PACKET_SIZE = 65507;
-
         private boolean isOpened;
         private DataSource dataSource;
 
@@ -980,10 +977,10 @@ public final class RtspSampleStreamWrapper implements
                     flags |= FLAG_FORCE_RTCP_MULTIPLEXING;
                 }
 
-                dataSource = new RtpDataSource(payloadFormat.clockrate(), flags);
+                dataSource = new RtpDataSource(payloadFormat.clockrate(), flags, bufferSize);
 
             } else {
-                dataSource = new UdpDataSinkSource(MAX_UDP_PACKET_SIZE);
+                dataSource = new UdpDataSinkSource(bufferSize);
                 isUdpSchema = true;
             }
 

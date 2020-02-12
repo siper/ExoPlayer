@@ -66,6 +66,7 @@ public abstract class Client implements Dispatcher.EventListener {
         Factory<T> setMode(@Mode int mode);
         Factory<T> setFlags(@Flags int flags);
         Factory<T> setAVOptions(@AVOptions int avOptions);
+        Factory<T> setBufferSize(int bufferSize);
         Factory<T> setNatMethod(@NatMethod int natMethod);
         T create(Builder builder);
     }
@@ -116,6 +117,14 @@ public abstract class Client implements Dispatcher.EventListener {
 
     private static final int DEFAULT_PORT = 554;
 
+    /**
+     * The maximum length of an datagram data packet size, in bytes.
+     * 65535 bytes minus IP header (20 bytes) and UDP header (8 bytes)
+     */
+    protected static final int MIN_DATAGRAM_PACKET_SIZE = 1480;
+    private static final int MAX_DATAGRAM_PACKET_SIZE = 307180;
+    private static final int DEFAULT_DATAGRAM_PACKET_SIZE = 65507;
+
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(flag = true, value = {AV_OPT_FLAG_DISABLE_AUDIO, AV_OPT_FLAG_DISABLE_VIDEO})
     public @interface AVOptions {}
@@ -164,6 +173,7 @@ public abstract class Client implements Dispatcher.EventListener {
     private final int retries;
     private ExoPlayer player;
     private @Flags int flags;
+    private final int bufferSize;
     private final EventListener listener;
     private final @NatMethod int natMethod;
     private final @Mode int mode;
@@ -184,6 +194,7 @@ public abstract class Client implements Dispatcher.EventListener {
         avOptions = builder.avOptions;
         natMethod = builder.natMethod;
         userAgent = builder.userAgent;
+        bufferSize = builder.bufferSize;
 
         dispatcher = new Dispatcher.Builder(this)
                 .setUri(uri)
@@ -197,6 +208,8 @@ public abstract class Client implements Dispatcher.EventListener {
     public final MediaSession session() { return session; }
 
     public final ExoPlayer player() { return player; }
+
+    public final int getBufferSize() { return bufferSize; }
 
     protected final @ClientState int state() { return state; }
 
@@ -870,6 +883,7 @@ public abstract class Client implements Dispatcher.EventListener {
         private Uri uri;
         private int retries;
         public @Mode int mode;
+        private int bufferSize;
         private @Flags int flags;
         private String userAgent;
         private ExoPlayer player;
@@ -885,6 +899,7 @@ public abstract class Client implements Dispatcher.EventListener {
         public Builder(Factory<? extends Client> factory) {
             this.factory = factory;
             this.mode = RTSP_AUTO_DETECT;
+            this.bufferSize = DEFAULT_DATAGRAM_PACKET_SIZE;
         }
 
         public Builder setFlags(@Flags int flags) {
@@ -899,6 +914,15 @@ public abstract class Client implements Dispatcher.EventListener {
 
         public Builder setAvOptions(@AVOptions int avOptions) {
             this.avOptions = avOptions;
+            return this;
+        }
+
+        public Builder setBufferSize(int bufferSize) {
+            if (bufferSize > MAX_DATAGRAM_PACKET_SIZE) {
+                throw new IllegalArgumentException("Invalid buffer size");
+            }
+
+            this.bufferSize = bufferSize;
             return this;
         }
 
