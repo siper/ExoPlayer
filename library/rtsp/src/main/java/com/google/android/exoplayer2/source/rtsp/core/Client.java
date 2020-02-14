@@ -119,7 +119,8 @@ public abstract class Client implements Dispatcher.EventListener {
             Pattern.CASE_INSENSITIVE);
 
     private static final int DEFAULT_PORT = 554;
-    private static final int MAX_BUFFER_SIZE = 307180;
+    private static final int MIN_RECEIVE_BUFFER_SIZE = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE / 2;
+    private static final int MAX_RECEIVE_BUFFER_SIZE = 500 * 1024;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(flag = true, value = {AV_OPT_FLAG_DISABLE_AUDIO, AV_OPT_FLAG_DISABLE_VIDEO})
@@ -900,7 +901,7 @@ public abstract class Client implements Dispatcher.EventListener {
         public Builder(Factory<? extends Client> factory) {
             this.factory = factory;
             this.mode = RTSP_AUTO_DETECT;
-            this.bufferSize = UdpDataSource.DEFAULT_MAXIMUM_PACKET_SIZE;
+            this.bufferSize = UdpDataSource.MAX_PACKET_SIZE;
             this.delayMs = RtpDataSource.DELAY_REORDER_MS;
         }
 
@@ -920,8 +921,8 @@ public abstract class Client implements Dispatcher.EventListener {
         }
 
         public Builder setBufferSize(int bufferSize) {
-            if (bufferSize < UdpDataSource.DEFAULT_PACKET_SIZE || bufferSize > MAX_BUFFER_SIZE) {
-                throw new IllegalArgumentException("Invalid buffer size");
+            if (bufferSize < MIN_RECEIVE_BUFFER_SIZE || bufferSize > MAX_RECEIVE_BUFFER_SIZE) {
+                throw new IllegalArgumentException("Invalid receive buffer size");
             }
 
             this.bufferSize = bufferSize;

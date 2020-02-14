@@ -48,27 +48,27 @@ public final class RtpDataSource extends UdpDataSinkSource  {
     private RtcpStatsFeedback statsFeedback;
 
     public RtpDataSource(int clockrate) {
-        this(clockrate, 0, RtpPacket.MAX_PACKET_SIZE, DELAY_REORDER_MS);
+        this(clockrate, 0, DEFAULT_RECEIVE_BUFFER_SIZE, DELAY_REORDER_MS);
     }
 
     public RtpDataSource(int clockrate, @Flags int flags) {
-        this(clockrate, flags, RtpPacket.MAX_PACKET_SIZE, DELAY_REORDER_MS);
+        this(clockrate, flags, DEFAULT_RECEIVE_BUFFER_SIZE, DELAY_REORDER_MS);
     }
 
     public RtpDataSource(int clockrate, long delayMs) {
-        this(clockrate, 0, RtpPacket.MAX_PACKET_SIZE, delayMs);
+        this(clockrate, 0, DEFAULT_RECEIVE_BUFFER_SIZE, delayMs);
     }
 
-    public RtpDataSource(int clockrate, @Flags int flags, int maxPacketSize) {
-        this(clockrate, flags, maxPacketSize, DELAY_REORDER_MS);
+    public RtpDataSource(int clockrate, @Flags int flags, int bufferSize) {
+        this(clockrate, flags, bufferSize, DELAY_REORDER_MS);
     }
 
-    public RtpDataSource(int clockrate, @Flags int flags, int maxPacketSize, long delayMs) {
-        super(maxPacketSize);
+    public RtpDataSource(int clockrate, @Flags int flags, int bufferSize, long delayMs) {
+        super(RtpPacket.MAX_PACKET_SIZE, bufferSize);
 
         this.flags = flags;
 
-        packetBuffer = new byte[maxPacketSize];
+        packetBuffer = new byte[RtpPacket.MAX_PACKET_SIZE];
         samplesQueue = (delayMs > 0) ? new RtpPriorityQueue(clockrate, delayMs) :
             new RtpSimpleQueue(clockrate);
 

@@ -62,6 +62,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.Loader;
 import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.upstream.UdpDataSinkSource;
+import com.google.android.exoplayer2.upstream.UdpDataSource;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.ConditionVariable;
 import com.google.android.exoplayer2.util.InetUtil;
@@ -982,7 +983,7 @@ public final class RtspSampleStreamWrapper implements
                 dataSource = new RtpDataSource(payloadFormat.clockrate(), flags, bufferSize, delayMs);
 
             } else {
-                dataSource = new UdpDataSinkSource(bufferSize);
+                dataSource = new UdpDataSinkSource(UdpDataSource.MAX_PACKET_SIZE, bufferSize);
                 isUdpSchema = true;
             }
 

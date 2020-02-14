@@ -36,16 +36,25 @@ public class UdpDataSinkSource extends UdpDataSource implements UdpDataSink {
      * @param maxPacketSize The maximum datagram packet size, in bytes.
      */
     public UdpDataSinkSource(int maxPacketSize) {
-        this(maxPacketSize, DEFAULT_SOCKET_TIMEOUT_MILLIS);
+        this(maxPacketSize, DEFAULT_RECEIVE_BUFFER_SIZE, DEFAULT_SOCKET_TIMEOUT_MILLIS);
     }
 
     /**
      * @param maxPacketSize The maximum datagram packet size, in bytes.
+     * @param receiveBufferSize The maximum receive buffer size, in bytes.
+     */
+    public UdpDataSinkSource(int maxPacketSize, int receiveBufferSize) {
+        this(maxPacketSize, receiveBufferSize, DEFAULT_SOCKET_TIMEOUT_MILLIS);
+    }
+
+    /**
+     * @param maxPacketSize The maximum datagram packet size, in bytes.
+     * @param receiveBufferSize The maximum receive buffer size, in bytes.
      * @param socketTimeoutMillis The socket timeout in milliseconds. A timeout of zero is interpreted
      *     as an infinite timeout.
      */
-    public UdpDataSinkSource(int maxPacketSize, int socketTimeoutMillis) {
-        super(maxPacketSize, socketTimeoutMillis);
+    public UdpDataSinkSource(int maxPacketSize, int receiveBufferSize, int socketTimeoutMillis) {
+        super(maxPacketSize, receiveBufferSize, socketTimeoutMillis);
     }
 
     @Override

@@ -39,7 +39,7 @@ public final class RtspDefaultClient extends Client {
             private @Mode int mode = RTSP_AUTO_DETECT;
             private @NatMethod int natMethod = RTSP_NAT_NONE;
             private long delayMs = RtpDataSource.DELAY_REORDER_MS;
-            private int bufferSize = UdpDataSource.DEFAULT_MAXIMUM_PACKET_SIZE;
+            private int bufferSize = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE;
 
             public Factory<RtspDefaultClient> setFlags(@Flags int flags) {
                 this.flags = flags;
