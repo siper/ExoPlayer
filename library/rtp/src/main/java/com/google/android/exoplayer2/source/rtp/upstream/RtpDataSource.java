@@ -69,7 +69,8 @@ public final class RtpDataSource extends UdpDataSinkSource  {
         this.flags = flags;
 
         packetBuffer = new byte[maxPacketSize];
-        samplesQueue = new RtpPriorityQueue(clockrate, delayMs);
+        samplesQueue = (delayMs > 0) ? new RtpPriorityQueue(clockrate, delayMs) :
+            new RtpSimpleQueue(clockrate);
 
         if (isSet(FLAG_ENABLE_RTCP_FEEDBACK)) {
             statistics = new RtpStats();
