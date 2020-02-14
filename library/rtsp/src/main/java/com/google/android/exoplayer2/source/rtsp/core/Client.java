@@ -28,7 +28,6 @@ import com.google.android.exoplayer2.source.rtp.format.FormatSpecificParameter;
 import com.google.android.exoplayer2.source.rtp.format.RtpAudioPayload;
 import com.google.android.exoplayer2.source.rtp.format.RtpPayloadFormat;
 import com.google.android.exoplayer2.source.rtp.format.RtpVideoPayload;
-import com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource;
 import com.google.android.exoplayer2.source.rtsp.auth.AuthScheme;
 import com.google.android.exoplayer2.source.rtsp.auth.BasicCredentials;
 import com.google.android.exoplayer2.source.rtsp.auth.Credentials;
@@ -66,11 +65,19 @@ public abstract class Client implements Dispatcher.EventListener {
 
     public interface Factory<T> {
         Factory<T> setMode(@Mode int mode);
-        Factory<T> setFlags(@Flags int flags);
-        Factory<T> setAVOptions(@AVOptions int avOptions);
-        Factory<T> setBufferSize(int bufferSize);
         Factory<T> setMaxDelay(long delayMs);
+        Factory<T> setFlags(@Flags int flags);
+        Factory<T> setBufferSize(int bufferSize);
+        Factory<T> setAVOptions(@AVOptions int avOptions);
         Factory<T> setNatMethod(@NatMethod int natMethod);
+
+        long getMaxDelay();
+        int getBufferSize();
+        @Mode int getMode();
+        @Flags int getFlags();
+        @AVOptions int getAVOptions();
+        @NatMethod int getNatMethod();
+
         T create(Builder builder);
     }
 
@@ -119,8 +126,8 @@ public abstract class Client implements Dispatcher.EventListener {
             Pattern.CASE_INSENSITIVE);
 
     private static final int DEFAULT_PORT = 554;
-    private static final int MIN_RECEIVE_BUFFER_SIZE = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE / 2;
-    private static final int MAX_RECEIVE_BUFFER_SIZE = 500 * 1024;
+    protected static final int MIN_RECEIVE_BUFFER_SIZE = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE / 2;
+    protected static final int MAX_RECEIVE_BUFFER_SIZE = 500 * 1024;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(flag = true, value = {AV_OPT_FLAG_DISABLE_AUDIO, AV_OPT_FLAG_DISABLE_VIDEO})
@@ -167,14 +174,13 @@ public abstract class Client implements Dispatcher.EventListener {
     private @ClientState int state;
 
     private final Uri uri;
-    private final int retries;
     private ExoPlayer player;
     private @Flags int flags;
     private final long delayMs;
     private final int bufferSize;
     private final EventListener listener;
     private final @NatMethod int natMethod;
-    private final @Mode int mode;
+    private @Mode int mode;
     private final @AVOptions int avOptions;
 
     private Credentials credentials;
@@ -184,16 +190,16 @@ public abstract class Client implements Dispatcher.EventListener {
 
     public Client(Builder builder) {
         uri = builder.uri;
-        mode = builder.mode;
-        flags = builder.flags;
         player = builder.player;
-        delayMs = builder.delayMs;
-        retries = builder.retries;
         listener = builder.listener;
-        avOptions = builder.avOptions;
-        natMethod = builder.natMethod;
         userAgent = builder.userAgent;
-        bufferSize = builder.bufferSize;
+
+        mode = builder.factory.getMode();
+        flags = builder.factory.getFlags();
+        delayMs = builder.factory.getMaxDelay();
+        avOptions = builder.factory.getAVOptions();
+        natMethod = builder.factory.getNatMethod();
+        bufferSize = builder.factory.getBufferSize();
 
         dispatcher = new Dispatcher.Builder(this)
                 .setUri(uri)
@@ -216,6 +222,17 @@ public abstract class Client implements Dispatcher.EventListener {
 
     public final void open() throws IOException, NullPointerException {
         if (!opened) {
+            dispatcher.connect();
+            sendOptionsRequest();
+
+            player.getVideoComponent().addVideoListener(session);
+            opened = true;
+        }
+    }
+
+    public final void retry() throws IOException, NullPointerException {
+        if (!opened) {
+            mode = RTSP_INTERLEAVED;
             dispatcher.connect();
             sendOptionsRequest();
 
@@ -882,16 +899,9 @@ public abstract class Client implements Dispatcher.EventListener {
 
     public static final class Builder {
         private Uri uri;
-        private int retries;
-        public @Mode int mode;
-        private long delayMs;
-        private int bufferSize;
-        private @Flags int flags;
         private String userAgent;
         private ExoPlayer player;
         private EventListener listener;
-        private @NatMethod int natMethod;
-        private @AVOptions int avOptions;
 
         private final Factory<? extends Client> factory;
 
@@ -900,47 +910,6 @@ public abstract class Client implements Dispatcher.EventListener {
 
         public Builder(Factory<? extends Client> factory) {
             this.factory = factory;
-            this.mode = RTSP_AUTO_DETECT;
-            this.bufferSize = UdpDataSource.MAX_PACKET_SIZE;
-            this.delayMs = RtpDataSource.DELAY_REORDER_MS;
-        }
-
-        public Builder setFlags(@Flags int flags) {
-            this.flags = flags;
-            return this;
-        }
-
-        public Builder setMode(@Mode int mode) {
-            this.mode = mode;
-            return this;
-        }
-
-        public Builder setAvOptions(@AVOptions int avOptions) {
-            this.avOptions = avOptions;
-            return this;
-        }
-
-        public Builder setBufferSize(int bufferSize) {
-            if (bufferSize < MIN_RECEIVE_BUFFER_SIZE || bufferSize > MAX_RECEIVE_BUFFER_SIZE) {
-                throw new IllegalArgumentException("Invalid receive buffer size");
-            }
-
-            this.bufferSize = bufferSize;
-            return this;
-        }
-
-        public Builder setMaxDelay(long delayMs) {
-            if (delayMs < 0) {
-                throw new IllegalArgumentException("Invalid delay");
-            }
-
-            this.delayMs = delayMs;
-            return this;
-        }
-
-        public Builder setNatMethod(@NatMethod int natMethod) {
-            this.natMethod = natMethod;
-            return this;
         }
 
         public Builder setUserAgent(String userAgent) {
@@ -973,13 +942,6 @@ public abstract class Client implements Dispatcher.EventListener {
             if (player == null) throw new IllegalArgumentException("player is null");
 
             this.player = player;
-            return this;
-        }
-
-        public Builder setRetries(int retries) {
-            if (retries < 0) throw new IllegalArgumentException("retries is wrong");
-
-            this.retries = retries;
             return this;
         }
 

@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.source.rtsp;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import androidx.annotation.IntDef;
 
 import com.google.android.exoplayer2.C;
@@ -86,9 +87,8 @@ import static com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource.FL
 import static com.google.android.exoplayer2.upstream.UdpDataSource.DEFAULT_SOCKET_TIMEOUT_MILLIS;
 
 public final class RtspSampleStreamWrapper implements
-    Loader.Callback<RtspSampleStreamWrapper.MediaStreamLoadable>,
-    SequenceableLoader, ExtractorOutput,
-    SampleQueue.UpstreamFormatChangedListener, MediaSession.EventListener,
+    Loader.Callback<RtspSampleStreamWrapper.MediaStreamLoadable>, SequenceableLoader,
+    ExtractorOutput, SampleQueue.UpstreamFormatChangedListener, MediaSession.EventListener,
     RtcpOutputReportDispatcher.EventListener {
 
     public interface EventListener {
@@ -159,6 +159,7 @@ public final class RtspSampleStreamWrapper implements
     private int[] interleavedChannels;
     private MediaStreamLoadable loadable;
 
+    private Looper looper;
     private Handler handler;
     private HandlerThread handlerThread;
 
@@ -193,7 +194,8 @@ public final class RtspSampleStreamWrapper implements
                 THREAD_PRIORITY_AUDIO);
         handlerThread.start();
 
-        handler = new Handler(handlerThread.getLooper());
+        looper = handlerThread.getLooper();
+        handler = new Handler(looper);
 
         loadCondition = new ConditionVariable();
 
@@ -213,12 +215,7 @@ public final class RtspSampleStreamWrapper implements
         outReporDispatcher = new RtcpOutputReportDispatcher();
         outReporDispatcher.addListener(this);
 
-        maybeFinishPrepareRunnable = new Runnable() {
-            @Override
-            public void run() {
-                maybeFinishPrepare();
-            }
-        };
+        maybeFinishPrepareRunnable = () -> maybeFinishPrepare();
 
         lastSeekPositionUs = positionUs;
         pendingResetPositionUs = C.TIME_UNSET;
@@ -249,7 +246,7 @@ public final class RtspSampleStreamWrapper implements
                             new UdpMediaStreamLoadable(this, handler, loadCondition) :
                             new TcpMediaStreamLoadable(this, handler, loadCondition);
 
-            loader.startLoading(loadable, this,  0);
+            loader.startLoading(looper, loadable, this,  0);
             prepared = true;
 
         } else {
@@ -553,12 +550,9 @@ public final class RtspSampleStreamWrapper implements
     public void onLoadCompleted(MediaStreamLoadable loadable, long elapsedRealtimeMs, long loadDurationMs) {
         loadingFinished = true;
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                listener.onMediaStreamPlaybackComplete(RtspSampleStreamWrapper.this);
-            }
-        });
+        handler.post(() ->
+                listener.onMediaStreamPlaybackComplete(RtspSampleStreamWrapper.this)
+        );
     }
 
     @Override
@@ -567,19 +561,16 @@ public final class RtspSampleStreamWrapper implements
         if (released) {
             loadingFinished = true;
 
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onMediaStreamPlaybackCancel(RtspSampleStreamWrapper.this);
-                }
-            });
+            handler.post(() ->
+                    listener.onMediaStreamPlaybackCancel(RtspSampleStreamWrapper.this)
+            );
 
         } else {
             Transport transport = track.format().transport();
             if (Transport.TCP.equals(transport.lowerTransport())) {
                 this.loadable = new TcpMediaStreamLoadable(this, handler,
                         loadCondition, true);
-                loader.startLoading(this.loadable, this, 0);
+                loader.startLoading(looper, this.loadable, this, 0);
             }
         }
     }
@@ -590,21 +581,17 @@ public final class RtspSampleStreamWrapper implements
                                               int errorCount) {
         loadingFinished = true;
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long durationMs = session.getDuration();
-                if (durationMs != C.TIME_UNSET && loadDurationMs > durationMs) {
-                    listener.onMediaStreamPlaybackComplete(RtspSampleStreamWrapper.this);
+        handler.post(() -> {
+            long durationMs = session.getDuration();
+            if (durationMs != C.TIME_UNSET && loadDurationMs > durationMs) {
+                listener.onMediaStreamPlaybackComplete(RtspSampleStreamWrapper.this);
+            } else {
+                if (error instanceof SocketTimeoutException) {
+                    listener.onMediaStreamPlaybackFailure(RtspSampleStreamWrapper.this,
+                            NO_DATA_RECEIVED);
                 } else {
-                    if (error instanceof SocketTimeoutException &&
-                            loadDurationMs < DEFAULT_SOCKET_TIMEOUT_MILLIS + 999L) {
-                        listener.onMediaStreamPlaybackFailure(RtspSampleStreamWrapper.this,
-                                NO_DATA_RECEIVED);
-                    } else {
-                        listener.onMediaStreamPlaybackFailure(RtspSampleStreamWrapper.this,
-                                DEFAULT_ERROR);
-                    }
+                    listener.onMediaStreamPlaybackFailure(RtspSampleStreamWrapper.this,
+                            DEFAULT_ERROR);
                 }
             }
         });
@@ -925,12 +912,9 @@ public final class RtspSampleStreamWrapper implements
 
             isOpened = false;
 
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onMediaStreamPrepareFailure(RtspSampleStreamWrapper.this);
-                }
-            });
+            handler.post(() ->
+                listener.onMediaStreamPrepareFailure(RtspSampleStreamWrapper.this)
+            );
         }
 
         private void maybeFinishOpen() {
@@ -940,12 +924,9 @@ public final class RtspSampleStreamWrapper implements
 
             isOpened = true;
 
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onMediaStreamPrepareStarted(RtspSampleStreamWrapper.this);
-                }
-            });
+            handler.post(() ->
+                listener.onMediaStreamPrepareStarted(RtspSampleStreamWrapper.this)
+            );
         }
 
         abstract DataSource buildAndOpenDataSource() throws IOException;

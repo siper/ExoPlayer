@@ -57,11 +57,19 @@ public final class RtspDefaultClient extends Client {
             }
 
             public Factory<RtspDefaultClient> setBufferSize(int bufferSize) {
+                if (bufferSize < MIN_RECEIVE_BUFFER_SIZE || bufferSize > MAX_RECEIVE_BUFFER_SIZE) {
+                    throw new IllegalArgumentException("Invalid receive buffer size");
+                }
+
                 this.bufferSize = bufferSize;
                 return this;
             }
 
             public Factory<RtspDefaultClient> setMaxDelay(long delayMs) {
+                if (delayMs < 0) {
+                    throw new IllegalArgumentException("Invalid delay");
+                }
+
                 this.delayMs = delayMs;
                 return this;
             }
@@ -71,21 +79,38 @@ public final class RtspDefaultClient extends Client {
                 return this;
             }
 
+            public @Mode int getMode() {
+                return mode;
+            }
+
+            public @Flags int getFlags() {
+                return flags;
+            }
+
+            public long getMaxDelay() {
+                return delayMs;
+            }
+
+            public int getBufferSize() {
+                return bufferSize;
+            }
+
+            public @NatMethod int getNatMethod() {
+                return natMethod;
+            }
+
+            public @AVOptions int getAVOptions() {
+                return avOptions;
+            }
+
             public RtspDefaultClient create(Builder builder) {
-                return new RtspDefaultClient(builder
-                        .setUserAgent(USER_AGENT)
-                        .setFlags(flags)
-                        .setBufferSize(bufferSize)
-                        .setMaxDelay(delayMs)
-                        .setMode(mode)
-                        .setAvOptions(avOptions)
-                        .setNatMethod(natMethod));
+                return new RtspDefaultClient(builder);
             }
         };
     }
 
 
-    RtspDefaultClient(Builder builder) {
+    private RtspDefaultClient(Builder builder) {
         super(builder);
     }
 
