@@ -28,6 +28,7 @@ import com.google.android.exoplayer2.source.rtp.format.FormatSpecificParameter;
 import com.google.android.exoplayer2.source.rtp.format.RtpAudioPayload;
 import com.google.android.exoplayer2.source.rtp.format.RtpPayloadFormat;
 import com.google.android.exoplayer2.source.rtp.format.RtpVideoPayload;
+import com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource;
 import com.google.android.exoplayer2.source.rtsp.auth.AuthScheme;
 import com.google.android.exoplayer2.source.rtsp.auth.BasicCredentials;
 import com.google.android.exoplayer2.source.rtsp.auth.Credentials;
@@ -52,6 +53,7 @@ import com.google.android.exoplayer2.source.sdp.core.Attribute;
 import com.google.android.exoplayer2.source.sdp.core.Bandwidth;
 import com.google.android.exoplayer2.source.sdp.core.Media;
 
+import com.google.android.exoplayer2.upstream.UdpDataSource;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -67,6 +69,7 @@ public abstract class Client implements Dispatcher.EventListener {
         Factory<T> setFlags(@Flags int flags);
         Factory<T> setAVOptions(@AVOptions int avOptions);
         Factory<T> setBufferSize(int bufferSize);
+        Factory<T> setMaxDelay(long delayMs);
         Factory<T> setNatMethod(@NatMethod int natMethod);
         T create(Builder builder);
     }
@@ -116,14 +119,7 @@ public abstract class Client implements Dispatcher.EventListener {
             Pattern.CASE_INSENSITIVE);
 
     private static final int DEFAULT_PORT = 554;
-
-    /**
-     * The maximum length of an datagram data packet size, in bytes.
-     * 65535 bytes minus IP header (20 bytes) and UDP header (8 bytes)
-     */
-    protected static final int MIN_DATAGRAM_PACKET_SIZE = 1480;
-    private static final int MAX_DATAGRAM_PACKET_SIZE = 307180;
-    private static final int DEFAULT_DATAGRAM_PACKET_SIZE = 65507;
+    private static final int MAX_BUFFER_SIZE = 307180;
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(flag = true, value = {AV_OPT_FLAG_DISABLE_AUDIO, AV_OPT_FLAG_DISABLE_VIDEO})
@@ -173,6 +169,7 @@ public abstract class Client implements Dispatcher.EventListener {
     private final int retries;
     private ExoPlayer player;
     private @Flags int flags;
+    private final long delayMs;
     private final int bufferSize;
     private final EventListener listener;
     private final @NatMethod int natMethod;
@@ -189,6 +186,7 @@ public abstract class Client implements Dispatcher.EventListener {
         mode = builder.mode;
         flags = builder.flags;
         player = builder.player;
+        delayMs = builder.delayMs;
         retries = builder.retries;
         listener = builder.listener;
         avOptions = builder.avOptions;
@@ -210,6 +208,8 @@ public abstract class Client implements Dispatcher.EventListener {
     public final ExoPlayer player() { return player; }
 
     public final int getBufferSize() { return bufferSize; }
+
+    public final long getMaxDelay() { return delayMs; }
 
     protected final @ClientState int state() { return state; }
 
@@ -883,6 +883,7 @@ public abstract class Client implements Dispatcher.EventListener {
         private Uri uri;
         private int retries;
         public @Mode int mode;
+        private long delayMs;
         private int bufferSize;
         private @Flags int flags;
         private String userAgent;
@@ -899,7 +900,8 @@ public abstract class Client implements Dispatcher.EventListener {
         public Builder(Factory<? extends Client> factory) {
             this.factory = factory;
             this.mode = RTSP_AUTO_DETECT;
-            this.bufferSize = DEFAULT_DATAGRAM_PACKET_SIZE;
+            this.bufferSize = UdpDataSource.DEFAULT_MAXIMUM_PACKET_SIZE;
+            this.delayMs = RtpDataSource.DELAY_REORDER_MS;
         }
 
         public Builder setFlags(@Flags int flags) {
@@ -918,11 +920,20 @@ public abstract class Client implements Dispatcher.EventListener {
         }
 
         public Builder setBufferSize(int bufferSize) {
-            if (bufferSize > MAX_DATAGRAM_PACKET_SIZE) {
+            if (bufferSize < UdpDataSource.DEFAULT_PACKET_SIZE || bufferSize > MAX_BUFFER_SIZE) {
                 throw new IllegalArgumentException("Invalid buffer size");
             }
 
             this.bufferSize = bufferSize;
+            return this;
+        }
+
+        public Builder setMaxDelay(long delayMs) {
+            if (delayMs < 0) {
+                throw new IllegalArgumentException("Invalid delay");
+            }
+
+            this.delayMs = delayMs;
             return this;
         }
 

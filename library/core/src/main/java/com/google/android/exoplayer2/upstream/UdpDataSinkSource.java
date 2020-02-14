@@ -29,7 +29,7 @@ import java.util.Arrays;
 public class UdpDataSinkSource extends UdpDataSource implements UdpDataSink {
 
     public UdpDataSinkSource() {
-        this(UdpDataSource.DEFAULT_MAX_PACKET_SIZE, DEFAULT_SOCKET_TIMEOUT_MILLIS);
+        this(UdpDataSource.DEFAULT_PACKET_SIZE, DEFAULT_SOCKET_TIMEOUT_MILLIS);
     }
 
     /**

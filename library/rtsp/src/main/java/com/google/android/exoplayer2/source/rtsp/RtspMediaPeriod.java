@@ -61,6 +61,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
     private RtspSampleStreamWrapper[] sampleStreamWrappers;
     private RtspSampleStreamWrapper[] preparedSampleStreamWrappers;
 
+    private final long delayMs;
     private final int bufferSize;
     private final ExoPlayer player;
     private final Allocator allocator;
@@ -86,6 +87,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
         player = client.player();
         session = client.session();
 
+        delayMs = client.getMaxDelay();
         bufferSize = client.getBufferSize();
 
         trackIdGenerator = new TrackIdGenerator(1, 1);
@@ -449,7 +451,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
 
     private RtspSampleStreamWrapper buildMediaSampleStream(MediaTrack track, long positionUs) {
         return new RtspSampleStreamWrapper(session, track, trackIdGenerator, positionUs, bufferSize,
-            this, transferListener, allocator, drmSessionManager);
+            delayMs,this, transferListener, allocator, drmSessionManager);
     }
 
     private void releaseAndCleanMediaStream(RtspSampleStreamWrapper sampleStream) {

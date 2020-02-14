@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.source.rtsp;
 
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
+import com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource;
 import com.google.android.exoplayer2.source.rtsp.core.Client;
 import com.google.android.exoplayer2.source.rtsp.message.Header;
 import com.google.android.exoplayer2.source.rtsp.media.MediaType;
@@ -23,6 +24,7 @@ import com.google.android.exoplayer2.source.rtsp.message.Range;
 import com.google.android.exoplayer2.source.rtsp.message.Request;
 import com.google.android.exoplayer2.source.rtsp.message.Transport;
 import com.google.android.exoplayer2.source.rtsp.media.MediaTrack;
+import com.google.android.exoplayer2.upstream.UdpDataSource;
 
 public final class RtspDefaultClient extends Client {
 
@@ -31,11 +33,13 @@ public final class RtspDefaultClient extends Client {
 
     public static Factory<RtspDefaultClient> factory() {
         return new Factory<RtspDefaultClient>() {
-            private int bufferSize;
-            private @Mode int mode;
+
             private @Flags int flags;
             private @AVOptions int avOptions;
-            private @NatMethod int natMethod;
+            private @Mode int mode = RTSP_AUTO_DETECT;
+            private @NatMethod int natMethod = RTSP_NAT_NONE;
+            private long delayMs = RtpDataSource.DELAY_REORDER_MS;
+            private int bufferSize = UdpDataSource.DEFAULT_MAXIMUM_PACKET_SIZE;
 
             public Factory<RtspDefaultClient> setFlags(@Flags int flags) {
                 this.flags = flags;
@@ -57,6 +61,11 @@ public final class RtspDefaultClient extends Client {
                 return this;
             }
 
+            public Factory<RtspDefaultClient> setMaxDelay(long delayMs) {
+                this.delayMs = delayMs;
+                return this;
+            }
+
             public Factory<RtspDefaultClient> setNatMethod(@NatMethod int natMethod) {
                 this.natMethod = natMethod;
                 return this;
@@ -66,9 +75,9 @@ public final class RtspDefaultClient extends Client {
                 return new RtspDefaultClient(builder
                         .setUserAgent(USER_AGENT)
                         .setFlags(flags)
-                        .setBufferSize(bufferSize < Client.MIN_DATAGRAM_PACKET_SIZE ?
-                            Client.MIN_DATAGRAM_PACKET_SIZE : bufferSize)
-                        .setMode((mode < builder.mode) ? builder.mode : mode)
+                        .setBufferSize(bufferSize)
+                        .setMaxDelay(delayMs)
+                        .setMode(mode)
                         .setAvOptions(avOptions)
                         .setNatMethod(natMethod));
             }

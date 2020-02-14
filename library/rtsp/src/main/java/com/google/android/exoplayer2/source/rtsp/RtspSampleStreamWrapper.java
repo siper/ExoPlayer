@@ -49,7 +49,7 @@ import com.google.android.exoplayer2.source.rtp.upstream.RtcpInputReportDispatch
 import com.google.android.exoplayer2.source.rtp.upstream.RtcpOutputReportDispatcher;
 import com.google.android.exoplayer2.source.rtp.upstream.RtpBufferedDataSource;
 import com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource;
-import com.google.android.exoplayer2.source.rtp.upstream.RtpSamplesHolder;
+import com.google.android.exoplayer2.source.rtp.upstream.RtpQueueHolder;
 import com.google.android.exoplayer2.source.rtsp.message.InterleavedFrame;
 import com.google.android.exoplayer2.source.rtsp.message.Transport;
 import com.google.android.exoplayer2.source.rtsp.media.MediaFormat;
@@ -121,6 +121,7 @@ public final class RtspSampleStreamWrapper implements
 
     private final ConditionVariable loadCondition;
 
+    private final long delayMs;
     private final int bufferSize;
     private final long positionUs;
     private final Allocator allocator;
@@ -163,24 +164,25 @@ public final class RtspSampleStreamWrapper implements
     private final TrackIdGenerator trackIdGenerator;
     private final DefaultExtractorsFactory defaultExtractorsFactory;
 
-    private final RtpSamplesHolder samplesHolder;
+    private final RtpQueueHolder samplesHolder;
     private final RtcpInputReportDispatcher inReportDispatcher;
     private final RtcpOutputReportDispatcher outReporDispatcher;
     private final DrmSessionManager<?> drmSessionManager;
 
     public RtspSampleStreamWrapper(MediaSession session, MediaTrack track,
-        TrackIdGenerator trackIdGenerator, long positionUs, int bufferSize, EventListener listener,
-        TransferListener transferListener, Allocator allocator,
+        TrackIdGenerator trackIdGenerator, long positionUs, int bufferSize, long delayMs,
+        EventListener listener, TransferListener transferListener, Allocator allocator,
         DrmSessionManager<?> drmSessionManager) {
 
-        this.session = session;
         this.track = track;
-        this.trackIdGenerator = trackIdGenerator;
+        this.delayMs = delayMs;
+        this.session = session;
+        this.listener = listener;
+        this.allocator = allocator;
         this.bufferSize = bufferSize;
         this.positionUs = positionUs;
-        this.listener = listener;
+        this.trackIdGenerator = trackIdGenerator;
         this.transferListener = transferListener;
-        this.allocator = allocator;
         this.drmSessionManager = drmSessionManager;
 
         mainHandler = new Handler();
@@ -204,7 +206,7 @@ public final class RtspSampleStreamWrapper implements
 
         defaultExtractorsFactory = new DefaultExtractorsFactory();
 
-        samplesHolder = new RtpSamplesHolder();
+        samplesHolder = new RtpQueueHolder();
         inReportDispatcher = new RtcpInputReportDispatcher();
 
         outReporDispatcher = new RtcpOutputReportDispatcher();
@@ -977,7 +979,7 @@ public final class RtspSampleStreamWrapper implements
                     flags |= FLAG_FORCE_RTCP_MULTIPLEXING;
                 }
 
-                dataSource = new RtpDataSource(payloadFormat.clockrate(), flags, bufferSize);
+                dataSource = new RtpDataSource(payloadFormat.clockrate(), flags, bufferSize, delayMs);
 
             } else {
                 dataSource = new UdpDataSinkSource(bufferSize);

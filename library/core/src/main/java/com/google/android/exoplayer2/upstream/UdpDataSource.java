@@ -29,10 +29,15 @@ import java.net.SocketException;
 /** A UDP {@link DataSource}. */
 public class UdpDataSource extends BaseDataSource {
 
-  /**
-   * The default maximum datagram packet size, in bytes.
+  /** The default datagram packet size, in bytes.
+   * 1500 bytes (MTU) minus IP header (20 bytes) and UDP header (8 bytes)
    */
-  public static final int DEFAULT_MAX_PACKET_SIZE = 2000;
+  public static final int DEFAULT_PACKET_SIZE = 1480;
+
+  /** The maximum datagram packet size, in bytes.
+   * 65535 bytes minus IP header (20 bytes) and UDP header (8 bytes)
+   */
+  public static final int DEFAULT_MAXIMUM_PACKET_SIZE = 65507;
 
   /** The default socket timeout, in milliseconds. */
   public static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 8 * 1000;
@@ -52,7 +57,7 @@ public class UdpDataSource extends BaseDataSource {
   private int packetRemaining;
 
   public UdpDataSource() {
-    this(DEFAULT_MAX_PACKET_SIZE);
+    this(DEFAULT_PACKET_SIZE);
   }
 
   /**
