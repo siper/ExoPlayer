@@ -128,14 +128,14 @@ public final class MaskingMediaPeriod implements MediaPeriod, MediaPeriod.Callba
    * Returns whether the media source is a live.
    */
   public boolean isSourceLive() {
-    return mediaSource != null && mediaSource.isLive();
+    return mediaSource.isLive();
   }
 
   /**
    * Returns whether the media source is on TCP.
    */
   public boolean isSourceOnTcp() {
-    return mediaSource != null && mediaSource.isOnTcp();
+    return mediaSource.isOnTcp();
   }
 
   @Override

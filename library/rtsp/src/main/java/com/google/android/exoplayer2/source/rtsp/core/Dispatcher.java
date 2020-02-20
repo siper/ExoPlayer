@@ -88,7 +88,6 @@ import static com.google.android.exoplayer2.source.rtsp.message.Protocol.RTSP_1_
     private final static int DEFAULT_PORT = 554;
 
     private Socket socket;
-    private InetAddress address;
 
     private Uri uri;
     private String userAgent;
@@ -119,7 +118,7 @@ import static com.google.android.exoplayer2.source.rtsp.message.Protocol.RTSP_1_
         if (!opened) {
             socket = SocketFactory.getDefault().createSocket();
 
-            address = InetAddress.getByName(uri.getHost());
+            InetAddress address = InetAddress.getByName(uri.getHost());
 
             int port = uri.getPort();
 

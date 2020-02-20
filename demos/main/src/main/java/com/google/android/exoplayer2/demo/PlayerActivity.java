@@ -354,10 +354,6 @@ public class PlayerActivity extends AppCompatActivity
   private void initializePlayer() {
     if (player == null) {
       Intent intent = getIntent();
-      mediaSources = createTopLevelMediaSources(intent);
-      if (mediaSources.isEmpty()) {
-        return;
-      }
       TrackSelection.Factory trackSelectionFactory;
       String abrAlgorithm = intent.getStringExtra(ABR_ALGORITHM_EXTRA);
       if (abrAlgorithm == null || ABR_ALGORITHM_DEFAULT.equals(abrAlgorithm)) {
@@ -392,6 +388,11 @@ public class PlayerActivity extends AppCompatActivity
       debugViewHelper.start();
       if (adsLoader != null) {
         adsLoader.setPlayer(player);
+      }
+
+      mediaSources = createTopLevelMediaSources(intent);
+      if (mediaSources.isEmpty()) {
+        return;
       }
     }
     boolean haveStartPosition = startWindow != C.INDEX_UNSET;
@@ -534,10 +535,9 @@ public class PlayerActivity extends AppCompatActivity
             .setDrmSessionManager(drmSessionManager)
             .createMediaSource(uri);
       case C.TYPE_RTSP:
-        return new RtspMediaSource.Factory(RtspDefaultClient.factory()
+        return new RtspMediaSource.Factory(RtspDefaultClient.factory(player)
             .setFlags(Client.FLAG_ENABLE_RTCP_SUPPORT)
             .setNatMethod(Client.RTSP_NAT_DUMMY))
-            .setIsLive(true)
             .createMediaSource(uri);
       case C.TYPE_OTHER:
         return new ProgressiveMediaSource.Factory(dataSourceFactory)

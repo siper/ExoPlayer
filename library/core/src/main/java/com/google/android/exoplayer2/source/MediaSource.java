@@ -18,7 +18,6 @@ package com.google.android.exoplayer2.source;
 import android.os.Handler;
 import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.upstream.Allocator;
 import com.google.android.exoplayer2.upstream.TransferListener;
@@ -213,14 +212,22 @@ public interface MediaSource {
   }
 
   /**
-   * Returns whether the media source is on TCP.
+   * Returns true if the media source is using TCP as transport protocol.
+   *
+   * <p>The default implementation returns {@code true}.
+   *
+   * @return true if the source is using TCP as transport protocol.
    */
-  boolean isOnTcp();
+  default boolean isOnTcp() { return true; }
 
   /**
-   * Returns whether the media source is a live.
+   * Returns true if the media source is live.
+   *
+   * <p>The default implementation returns {@code false}.
+   *
+   * @return true if the source is live.
    */
-  boolean isLive();
+  default boolean isLive() { return false; }
 
   /**
    * Adds a {@link MediaSourceEventListener} to the list of listeners which are notified of media
@@ -291,26 +298,6 @@ public interface MediaSource {
    *     and other data.
    */
   void prepareSource(MediaSourceCaller caller, @Nullable TransferListener mediaTransferListener);
-
-  /**
-   * Registers a {@link MediaSourceCaller}. Starts source preparation if needed and enables the
-   * source for the creation of {@link MediaPeriod MediaPerods}.
-   *
-   * <p>Should not be called directly from application code.
-   *
-   * <p>{@link MediaSourceCaller#onSourceInfoRefreshed(MediaSource, Timeline)} will be called once
-   * the source has a {@link Timeline}.
-   *
-   * <p>For each call to this method, a call to {@link #releaseSource(MediaSourceCaller)} is needed
-   * to remove the caller and to release the source if no longer required.
-   *  @param caller The {@link MediaSourceCaller} to be registered.
-   * @param mediaTransferListener The transfer listener which should be informed of any media data
-   *     transfers. May be null if no listener is available. Note that this listener should be only
-   *     informed of transfers related to the media loads and not of auxiliary loads for manifests
-   * @param player The {@link ExoPlayer} instance.
-   */
-  void prepareSource(MediaSourceCaller caller, @Nullable TransferListener mediaTransferListener,
-      @Nullable ExoPlayer player);
 
   /**
    * Throws any pending error encountered while loading or refreshing source information.

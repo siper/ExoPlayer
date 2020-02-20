@@ -70,11 +70,10 @@ import java.util.regex.Pattern;
 
   @Retention(RetentionPolicy.SOURCE)
   @IntDef(flag = true, value = {IO_ERROR, PARSE_ERROR})
-  public @interface ErrorCode {
+  @interface ErrorCode {
   }
-
-  public final static int IO_ERROR = 1;
-  public final static int PARSE_ERROR = 2;
+  final static int IO_ERROR = 1;
+  final static int PARSE_ERROR = 2;
 
   private final Handler handler;
   private final HandlerThread thread;
@@ -132,9 +131,8 @@ import java.util.regex.Pattern;
             throws NullPointerException, IOException {
       byte[] body = new byte[mediaLength];
       reader.readFully(body, 0, mediaLength);
-      StringBuilder stringBuilder = new StringBuilder(new String(body, 0, mediaLength));
 
-      MessageBody messageBody = new MessageBody(mediaType, stringBuilder.toString());
+      MessageBody messageBody = new MessageBody(mediaType, new String(body, 0, mediaLength));
       handleMessage(builder.setBody(messageBody).build());
     }
 

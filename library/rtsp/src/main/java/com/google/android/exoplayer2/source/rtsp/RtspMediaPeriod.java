@@ -18,7 +18,6 @@ package com.google.android.exoplayer2.source.rtsp;
 import android.os.SystemClock;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.source.MediaPeriod;
@@ -65,10 +64,8 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
 
     private final long delayMs;
     private final int bufferSize;
-    private final ExoPlayer player;
     private final Allocator allocator;
     private final MediaSession session;
-    private final RtspMediaSource mediaSource;
     private final FallbackPolicy fallbackPolicy;
     private final EventDispatcher eventDispatcher;
     private final TrackIdGenerator trackIdGenerator;
@@ -76,19 +73,17 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
     private final DrmSessionManager<?> drmSessionManager;
     private final IdentityHashMap<SampleStream, Integer> streamWrapperIndices;
 
-    RtspMediaPeriod(RtspMediaSource mediaSource, Client client, TransferListener transferListener,
+    RtspMediaPeriod(Client client, FallbackPolicy fallbackPolicy, TransferListener transferListener,
         EventDispatcher eventDispatcher, Allocator allocator, DrmSessionManager<?> drmSessionManager) {
         this.allocator = allocator;
-        this.mediaSource = mediaSource;
+        this.fallbackPolicy = fallbackPolicy;
         this.eventDispatcher = eventDispatcher;
         this.transferListener = transferListener;
         this.drmSessionManager = drmSessionManager;
 
-        player = client.getPlayer();
         session = client.getSession();
         delayMs = client.getMaxDelay();
         bufferSize = client.getBufferSize();
-        fallbackPolicy = client.getFallbackPolicy();
 
         trackIdGenerator = new TrackIdGenerator(1, 1);
 
@@ -409,8 +404,8 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
                 eventDispatcher.loadError(new DataSpec(session.getUri()), session.getUri(), null,
                         DATA_TYPE_MEDIA, 0, 0, 0, null, false);
 
-                if (fallbackPolicy != null && fallbackPolicy.isAllowRetry(error) && !session.isInFallback()) {
-                    fallbackPolicy.execute(player, mediaSource);
+                if (!session.isInFallback()) {
+                    fallbackPolicy.retryIfAllowError(error);
                 }
             }
         }

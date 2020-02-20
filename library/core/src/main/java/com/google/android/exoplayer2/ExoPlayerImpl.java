@@ -277,7 +277,7 @@ import java.util.concurrent.TimeoutException;
     // player after this prepare. The internal player can't change the playback info immediately
     // because it uses a callback.
     pendingOperationAcks++;
-    internalPlayer.prepare(this);
+    internalPlayer.prepare();
     updatePlaybackInfo(
         playbackInfo,
         /* positionDiscontinuity= */ false,

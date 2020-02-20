@@ -119,7 +119,7 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
     }
 
     private final Uri uri;
-    private final Client.Factory<? extends Client> factory;
+    private final Client.Factory factory;
     private EventDispatcher eventDispatcher;
 
     private Client client;
@@ -129,17 +129,17 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
     int transportProtocol;
 
     private DrmSessionManager<?> drmSessionManager;
-    private @Nullable TransferListener transferListener;
     private final RtspFallbackPolicy fallbackPolicy;
+    private @Nullable TransferListener transferListener;
 
-    private RtspMediaSource(Uri uri, Client.Factory<? extends Client> factory, boolean isLive,
+    private RtspMediaSource(Uri uri, Client.Factory factory, boolean isLive,
         DrmSessionManager<?> drmSessionManager) {
         this.uri = uri;
         this.isLive = isLive;
         this.factory = factory;
         this.drmSessionManager = drmSessionManager;
 
-        fallbackPolicy = new RtspFallbackPolicy(factory.getMode());
+        fallbackPolicy = new RtspFallbackPolicy(this, factory);
     }
 
     @Override
@@ -161,12 +161,8 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
     @Override
     public MediaPeriod createPeriod(MediaPeriodId id, Allocator allocator, long startPositionUs) {
         eventDispatcher = createEventDispatcher(id);
-        return new RtspMediaPeriod(this,
-                client,
-                transferListener,
-                eventDispatcher,
-                allocator,
-                drmSessionManager);
+        return new RtspMediaPeriod(client, fallbackPolicy, transferListener, eventDispatcher,
+            allocator, drmSessionManager);
     }
 
     @Override
@@ -186,8 +182,6 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
             client = new Client.Builder(factory)
                 .setUri(uri)
                 .setListener(this)
-                .setPlayer(getPlayer())
-                .setFallbackPolicy(fallbackPolicy)
                 .build();
 
             client.open();

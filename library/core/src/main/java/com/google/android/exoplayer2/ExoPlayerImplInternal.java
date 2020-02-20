@@ -197,10 +197,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
     handler.obtainMessage(MSG_PREPARE).sendToTarget();
   }
 
-  public void prepare(@Nullable ExoPlayer player) {
-    handler.obtainMessage(MSG_PREPARE, player).sendToTarget();
-  }
-
   public void setPlayWhenReady(boolean playWhenReady) {
     handler.obtainMessage(MSG_SET_PLAY_WHEN_READY, playWhenReady ? 1 : 0, 0).sendToTarget();
   }
@@ -375,7 +371,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     try {
       switch (msg.what) {
         case MSG_PREPARE:
-          prepareInternal((ExoPlayer) msg.obj);
+          prepareInternal();
           break;
         case MSG_SET_PLAY_WHEN_READY:
           setPlayWhenReadyInternal(msg.arg1 != 0);
@@ -579,7 +575,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
   }
 
-  private void prepareInternal(@Nullable ExoPlayer player) {
+  private void prepareInternal() {
     playbackInfoUpdate.incrementPendingOperationAcks(/* operationAcks= */ 1);
     resetInternal(
         /* resetRenderers= */ false,
@@ -589,7 +585,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         /* resetError= */ true);
     loadControl.onPrepared();
     setState(playbackInfo.timeline.isEmpty() ? Player.STATE_ENDED : Player.STATE_BUFFERING);
-    playlist.prepare(bandwidthMeter.getTransferListener(), player);
+    playlist.prepare(bandwidthMeter.getTransferListener());
     handler.sendEmptyMessage(MSG_DO_SOME_WORK);
   }
 
@@ -606,7 +602,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
     Timeline timeline =
         playlist.setMediaSources(
-            playlistUpdateMessage.mediaSourceHolders, playlistUpdateMessage.shuffleOrder, null);
+            playlistUpdateMessage.mediaSourceHolders, playlistUpdateMessage.shuffleOrder);
     handlePlaylistInfoRefreshed(timeline);
   }
 
@@ -617,7 +613,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         playlist.addMediaSources(
             insertionIndex == C.INDEX_UNSET ? playlist.getSize() : insertionIndex,
             addMessage.mediaSourceHolders,
-            addMessage.shuffleOrder, null);
+            addMessage.shuffleOrder);
     handlePlaylistInfoRefreshed(timeline);
   }
 

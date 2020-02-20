@@ -352,9 +352,10 @@ public final class RtspSampleStreamWrapper implements
      */
     boolean seekToUs(long positionUs) {
         lastSeekPositionUs = positionUs;
-        /*if (sampleQueuesBuilt && seekInsideBufferUs(positionUs)) {
+        // See if we can seek inside the samples queue.
+        if (sampleQueuesBuilt && seekInsideBufferUs(positionUs)) {
             return false;
-        }*/
+        }
 
         // We were unable to seek within the buffer, so need discard to end.
         for (SampleQueue sampleQueue : sampleQueues) {
@@ -1022,7 +1023,7 @@ public final class RtspSampleStreamWrapper implements
 
                     } catch (IOException e) {
                         if (e instanceof SocketTimeoutException) {
-                            if (session.getState() == MediaSession.PAUSED) {
+                            if (session.isPaused()) {
                                 continue;
                             }
                         }

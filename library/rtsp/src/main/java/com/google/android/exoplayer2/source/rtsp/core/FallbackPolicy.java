@@ -1,11 +1,35 @@
 package com.google.android.exoplayer2.source.rtsp.core;
 
+import android.os.Handler;
+import android.os.Looper;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.source.rtsp.RtspMediaException;
 
-public interface FallbackPolicy {
-  boolean isActive();
-  boolean isAllowRetry(RtspMediaException error);
-  boolean execute(ExoPlayer player, MediaSource mediaSource);
+public abstract class FallbackPolicy {
+
+  private boolean isExecuteCalled;
+  private final Client.Factory factory;
+  private final MediaSource mediaSource;
+
+  public FallbackPolicy(MediaSource mediaSource, Client.Factory factory) {
+    this.factory = factory;
+    this.mediaSource = mediaSource;
+  }
+
+  protected abstract boolean isAllowError(Throwable error);
+
+  public final void retryIfAllowError(Throwable error) {
+    if (!isExecuteCalled && factory.mode != Client.RTSP_INTERLEAVED && isAllowError(error)) {
+      isExecuteCalled = true;
+      factory.setMode(Client.RTSP_INTERLEAVED);
+
+      new Handler(Looper.getMainLooper()).post(() -> {
+        ExoPlayer player = factory.player;
+        player.stop(true);
+        player.setMediaSource(mediaSource);
+        player.prepare();
+      });
+    }
+  }
+
 }

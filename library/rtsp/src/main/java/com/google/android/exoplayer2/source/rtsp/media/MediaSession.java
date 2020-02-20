@@ -17,15 +17,17 @@ package com.google.android.exoplayer2.source.rtsp.media;
 
 import android.net.Uri;
 
+import android.os.Handler;
+import android.os.Looper;
 import androidx.annotation.IntDef;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.rtsp.RtspSampleStreamWrapper;
 import com.google.android.exoplayer2.source.rtsp.core.Client;
 import com.google.android.exoplayer2.source.rtsp.message.InterleavedFrame;
 import com.google.android.exoplayer2.source.rtsp.message.Range;
 import com.google.android.exoplayer2.source.rtsp.message.Transport;
-import com.google.android.exoplayer2.video.VideoListener;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -40,11 +42,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.google.android.exoplayer2.Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST;
 import static com.google.android.exoplayer2.source.rtsp.core.Client.FLAG_ENABLE_RTCP_SUPPORT;
 import static com.google.android.exoplayer2.source.rtsp.core.Client.FLAG_FORCE_RTCP_MUXED;
 import static com.google.android.exoplayer2.source.rtsp.core.Client.RTSP_NAT_DUMMY;
 
-public final class MediaSession implements VideoListener {
+public final class MediaSession implements Player.EventListener {
 
     public interface EventListener {
         void onPausePlayback();
@@ -57,13 +60,13 @@ public final class MediaSession implements VideoListener {
      */
     @Retention(RetentionPolicy.SOURCE)
     @IntDef(flag = true, value = {IDLE, PREPARING, PREPARED, PLAYING, PAUSED, STOPPED})
-    public @interface SessionState {}
-    public final static int IDLE = 0;
-    public final static int PREPARING = 1;
-    public final static int PREPARED = 2;
-    public final static int PLAYING = 3;
-    public final static int PAUSED = 4;
-    public final static int STOPPED = 5;
+    @interface SessionState {}
+    final static int IDLE = 0;
+    final static int PREPARING = 1;
+    final static int PREPARED = 2;
+    final static int PLAYING = 3;
+    final static int PAUSED = 4;
+    final static int STOPPED = 5;
 
     /**
      * Flags to indicate the delivery mode.
@@ -139,6 +142,10 @@ public final class MediaSession implements VideoListener {
 
         tcpChannels = new int[0];
         pendingResetPosition = C.TIME_UNSET;
+
+        new Handler(Looper.getMainLooper()).post(() -> {
+            client.getPlayer().addListener(MediaSession.this);
+        });
     }
 
     public Uri getUri() { return uri; }
@@ -189,7 +196,9 @@ public final class MediaSession implements VideoListener {
 
     public boolean isInterleaved() { return client.isInterleavedMode() || tcpChannels.length > 0; }
 
-    public @SessionState int getState() { return state; }
+    public boolean isPaused() {
+        return state == PAUSED;
+    }
 
     public boolean isInFallback() { return isInFallback; }
 
@@ -248,10 +257,6 @@ public final class MediaSession implements VideoListener {
         listeners.add(listener);
     }
 
-    public void pause() {
-        client.sendPauseRequest();
-    }
-
     public void onPauseSuccess() {
         if (pendingResetPosition == C.TIME_UNSET) {
             if (state != PAUSED) {
@@ -266,10 +271,6 @@ public final class MediaSession implements VideoListener {
                 client.sendPlayRequest(Range.parse("npt=" + pendingResetPosition + "-end"), 1);
             }
         }
-    }
-
-    public void resume() {
-        client.sendPlayRequest(Range.parse("npt=-end"), 1);
     }
 
     public void onPlaySuccess() {
@@ -287,12 +288,8 @@ public final class MediaSession implements VideoListener {
             state = PLAYING;
 
         } else {
-            if (state == PAUSED && !isVideoTrackEnable) {
-                client.sendPauseRequest();
-            } else {
-                for (EventListener listener : listeners) {
-                    listener.onSeekPlayback();
-                }
+            for (EventListener listener : listeners) {
+                listener.onSeekPlayback();
             }
 
             pendingResetPosition = C.TIME_UNSET;
@@ -326,6 +323,10 @@ public final class MediaSession implements VideoListener {
         for (EventListener listener : listeners) {
             listener.onStopPlayback();
         }
+
+        new Handler(Looper.getMainLooper()).post(() -> {
+            client.getPlayer().removeListener(MediaSession.this);
+        });
 
         tracks.clear();
         prepared.clear();
@@ -469,25 +470,19 @@ public final class MediaSession implements VideoListener {
         client.dispatch(interleavedFrame);
     }
 
-    // VideoListener implementation
+    // Player.EventListener
+    public void onPlayWhenReadyChanged(
+        boolean playWhenReady, @Player.PlayWhenReadyChangeReason int reason) {
+        if (reason == PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+            if (!playWhenReady && state == PLAYING) {
+                client.sendPauseRequest();
 
-    @Override
-    public void onVideoSizeChanged(
-            int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        // Do nothing.
-    }
-
-    @Override
-    public void onRenderedFirstFrame() {
-        if (state == PAUSED) {
-            client.sendPauseRequest();
+            } else if (playWhenReady && state == PAUSED) {
+                client.sendPlayRequest(Range.parse("npt=-end"), 1);
+            }
         }
     }
 
-    @Override
-    public void onSurfaceSizeChanged(int width, int height) {
-        // Do nothing.
-    }
 
     /**
      * Monitor the keep alive message.
@@ -498,7 +493,7 @@ public final class MediaSession implements VideoListener {
         private volatile boolean enabled;
         private final Runnable keepAliveRunnable;
 
-        public KeepAliveMonitor() {
+        KeepAliveMonitor() {
             keepAliveRunnable = () -> {
                 try {
 
@@ -524,14 +519,14 @@ public final class MediaSession implements VideoListener {
             };
         }
 
-        public void start() {
+        void start() {
             if (!enabled) {
                 enabled = true;
                 executor.execute(keepAliveRunnable);
             }
         }
 
-        public void cancel() {
+        void cancel() {
             if (enabled) {
                 enabled = false;
 

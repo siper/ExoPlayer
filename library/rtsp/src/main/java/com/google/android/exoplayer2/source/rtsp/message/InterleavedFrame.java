@@ -16,6 +16,8 @@
 package com.google.android.exoplayer2.source.rtsp.message;
 
 
+import androidx.annotation.NonNull;
+
 public class InterleavedFrame {
   private final int channel;
   private final byte[] data;
@@ -35,17 +37,15 @@ public class InterleavedFrame {
     bytes[0] = (byte) '$';
     bytes[1] = (byte) channel;
     bytes[2] = (byte) ((data.length & 0xFF00) >> 8);
-    bytes[3] = (byte) ((data.length & 0x00FF) >> 0);
+    bytes[3] = (byte) (data.length & 0x00FF);
 
     System.arraycopy(data, 0, bytes, 4, data.length);
     return bytes;
   }
 
+  @NonNull
   @Override
   public String toString() {
-    StringBuilder str = new StringBuilder();
-    str.append('$').append((char)channel).append((short)data.length).append(new String(data));
-
-    return str.toString();
+    return '$' + ((char) channel) + (short)data.length + new String(data);
   }
 }

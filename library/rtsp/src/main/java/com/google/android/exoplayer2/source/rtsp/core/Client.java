@@ -22,12 +22,15 @@ import androidx.annotation.IntDef;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.rtp.format.FormatSpecificParameter;
 import com.google.android.exoplayer2.source.rtp.format.RtpAudioPayload;
 import com.google.android.exoplayer2.source.rtp.format.RtpPayloadFormat;
 import com.google.android.exoplayer2.source.rtp.format.RtpVideoPayload;
+import com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource;
 import com.google.android.exoplayer2.source.rtsp.RtspSampleStreamWrapper;
 import com.google.android.exoplayer2.source.rtsp.auth.AuthScheme;
 import com.google.android.exoplayer2.source.rtsp.auth.BasicCredentials;
@@ -64,27 +67,105 @@ import java.util.regex.Pattern;
 
 public abstract class Client implements Dispatcher.EventListener {
 
-    public interface Factory<T> {
-        Factory<T> setMode(@Mode int mode);
-        Factory<T> setMaxDelay(long delayMs);
-        Factory<T> setFlags(@Flags int flags);
-        Factory<T> setBufferSize(int bufferSize);
-        Factory<T> setAVOptions(@AVOptions int avOptions);
-        Factory<T> setNatMethod(@NatMethod int natMethod);
+    private static final String USER_AGENT = ExoPlayerLibraryInfo.VERSION_SLASHY +
+        " (Media Player for Android)";
 
-        long getMaxDelay();
-        int getBufferSize();
-        @Mode int getMode();
-        @Flags int getFlags();
-        @AVOptions int getAVOptions();
-        @NatMethod int getNatMethod();
+    public static abstract class Factory<T extends Client> {
+        String userAgent;
+        @Flags int flags;
+        @AVOptions int avOptions;
+        @Mode int mode = RTSP_AUTO_DETECT;
+        @NatMethod int natMethod = RTSP_NAT_NONE;
+        long delayMs = RtpDataSource.DELAY_REORDER_MS;
+        int bufferSize = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE;
 
-        T create(Builder builder);
+        final ExoPlayer player;
+
+        public Factory(ExoPlayer exoPlayer) {
+            this.player = exoPlayer;
+        }
+
+        public Factory<T> setFlags(@Flags int flags) {
+            this.flags = flags;
+            return this;
+        }
+
+        public Factory<T> setMode(@Mode int mode) {
+            this.mode = mode;
+            return this;
+        }
+
+        public Factory<T> setAvOptions(@AVOptions int avOptions) {
+            this.avOptions = avOptions;
+            return this;
+        }
+
+        public Factory<T> setUserAgent(String userAgent) {
+            this.userAgent = userAgent;
+            return this;
+        }
+
+        public Factory<T> setBufferSize(int bufferSize) {
+            if (bufferSize < MIN_RECEIVE_BUFFER_SIZE || bufferSize > MAX_RECEIVE_BUFFER_SIZE) {
+                throw new IllegalArgumentException("Invalid receive buffer size");
+            }
+
+            this.bufferSize = bufferSize;
+            return this;
+        }
+
+        public Factory<T> setMaxDelay(long delayMs) {
+            if (delayMs < 0) {
+                throw new IllegalArgumentException("Invalid delay");
+            }
+
+            this.delayMs = delayMs;
+            return this;
+        }
+
+        public Factory<T> setNatMethod(@NatMethod int natMethod) {
+            this.natMethod = natMethod;
+            return this;
+        }
+
+        ExoPlayer getPlayer() {
+            return player;
+        }
+
+        int getFlags() {
+            return flags;
+        }
+
+        int getAvOptions() {
+            return avOptions;
+        }
+
+        int getMode() {
+            return mode;
+        }
+
+        int getNatMethod() {
+            return natMethod;
+        }
+
+        long getMaxDelay() {
+            return delayMs;
+        }
+
+        int getBufferSize() {
+            return bufferSize;
+        }
+
+        String getUserAgent() {
+            return userAgent;
+        }
+
+        public abstract T create(Builder builder);
     }
 
     public interface EventListener {
         /**
-         * Called when the rtsp media session is established and prepared.
+         * Called when the Rtsp media session is established and prepared.
          *
          */
         void onMediaDescriptionInfoRefreshed(long durationUs);
@@ -165,21 +246,20 @@ public abstract class Client implements Dispatcher.EventListener {
     final static int PLAYING = 3;
     final static int RECORDING = 4;
 
-    private final String userAgent;
+    private String userAgent;
+    private final MediaSession session;
     private final Dispatcher dispatcher;
-    protected final MediaSession session;
     private final List<Method> serverMethods;
 
     private final Uri uri;
     private @Mode int mode;
-    private ExoPlayer player;
     private @Flags int flags;
     private final long delayMs;
+    private final Player player;
     private final int bufferSize;
     private final EventListener listener;
     private final @NatMethod int natMethod;
     private final @AVOptions int avOptions;
-    private final FallbackPolicy fallbackPolicy;
 
     private @ClientState int state;
     private Credentials credentials;
@@ -189,18 +269,20 @@ public abstract class Client implements Dispatcher.EventListener {
 
     public Client(Builder builder) {
         uri = builder.uri;
-        player = builder.player;
         listener = builder.listener;
-        userAgent = builder.userAgent;
-        fallbackPolicy = builder.fallbackPolicy;
 
+        mode = builder.factory.getMode();
         flags = builder.factory.getFlags();
+        player = builder.factory.getPlayer();
         delayMs = builder.factory.getMaxDelay();
-        avOptions = builder.factory.getAVOptions();
+        avOptions = builder.factory.getAvOptions();
         natMethod = builder.factory.getNatMethod();
         bufferSize = builder.factory.getBufferSize();
 
-        mode = fallbackPolicy.isActive() ? RTSP_INTERLEAVED : builder.factory.getMode();
+        userAgent = builder.factory.getUserAgent();
+        if (userAgent == null) {
+            userAgent = USER_AGENT;
+        }
 
         serverMethods = new ArrayList<>();
 
@@ -217,15 +299,15 @@ public abstract class Client implements Dispatcher.EventListener {
 
     public final long getMaxDelay() { return delayMs; }
 
-    public final ExoPlayer getPlayer() { return player; }
+    public final Player getPlayer() { return player; }
 
     public final int getBufferSize() { return bufferSize; }
+
+    public final String getUserAgent() { return userAgent; }
 
     public final MediaSession getSession() { return session; }
 
     protected final @ClientState int getState() { return state; }
-
-    public final FallbackPolicy getFallbackPolicy() { return fallbackPolicy; }
 
     public final boolean isFlagSet(@Flags int flag) {
         return (flags & flag) == flag;
@@ -909,30 +991,14 @@ public abstract class Client implements Dispatcher.EventListener {
 
     public static final class Builder {
         private Uri uri;
-        private String userAgent;
-        private ExoPlayer player;
-        private EventListener listener;
-        private FallbackPolicy fallbackPolicy;
-
-        private final Factory<? extends Client> factory;
-
         private Handler eventHandler;
+        private EventListener listener;
         private MediaSourceEventListener eventListener;
 
-        public Builder(Factory<? extends Client> factory) {
+        private final Factory factory;
+
+        public Builder(Factory factory) {
             this.factory = factory;
-        }
-
-        public Builder setUserAgent(String userAgent) {
-            this.userAgent = userAgent;
-            return this;
-        }
-
-        public Builder setFallbackPolicy(FallbackPolicy fallbackPolicy) {
-            if (fallbackPolicy == null) throw new IllegalArgumentException("fallbackPolicy == null");
-
-            this.fallbackPolicy = fallbackPolicy;
-            return this;
         }
 
         public Builder setListener(EventListener listener) {
@@ -953,12 +1019,6 @@ public abstract class Client implements Dispatcher.EventListener {
         public Builder setEventListener(Handler eventHandler, MediaSourceEventListener eventListener) {
             this.eventHandler = eventHandler;
             this.eventListener = eventListener;
-            return this;
-        }
-        public Builder setPlayer(ExoPlayer player) {
-            if (player == null) throw new IllegalArgumentException("player is null");
-
-            this.player = player;
             return this;
         }
 
