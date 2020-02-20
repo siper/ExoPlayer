@@ -232,6 +232,16 @@ public final class Util {
   }
 
   /**
+   * Returns true if the URI is a rtsp stream.
+   *
+   * @param uri The uri to test.
+   */
+  public static boolean isRtspUri(Uri uri) {
+    String scheme = uri.getScheme();
+    return "rtsp".equals(scheme);
+  }
+
+  /**
    * Tests two objects for {@link Object#equals(Object)} equality, handling the case where one or
    * both may be null.
    *
@@ -1590,6 +1600,7 @@ public final class Util {
    */
   @C.ContentType
   public static int inferContentType(Uri uri) {
+    if (isRtspUri(uri)) return C.TYPE_RTSP;
     String path = uri.getPath();
     return path == null ? C.TYPE_OTHER : inferContentType(path);
   }

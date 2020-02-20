@@ -79,6 +79,13 @@ import com.google.android.exoplayer2.util.StandaloneMediaClock;
   }
 
   /**
+   * Returns whether the standalone clock has been started.
+   */
+  public boolean isStarted() {
+    return standaloneClockIsStarted;
+  }
+
+  /**
    * Resets the position of the standalone fallback clock.
    *
    * @param positionUs The position to set in microseconds.

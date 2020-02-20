@@ -28,6 +28,7 @@ import com.google.android.exoplayer2.DefaultMediaClock.PlaybackParameterListener
 import com.google.android.exoplayer2.Player.DiscontinuityReason;
 import com.google.android.exoplayer2.Player.RepeatMode;
 import com.google.android.exoplayer2.analytics.AnalyticsCollector;
+import com.google.android.exoplayer2.source.MaskingMediaPeriod;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSource.MediaPeriodId;
 import com.google.android.exoplayer2.source.SampleStream;
@@ -90,6 +91,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
   private static final int MSG_PLAYLIST_UPDATE_REQUESTED = 22;
 
   private static final int ACTIVE_INTERVAL_MS = 10;
+  private static final int ACTIVE_HIGH_INTERVAL_MS = 20;
   private static final int IDLE_INTERVAL_MS = 1000;
 
   private final Renderer[] renderers;
@@ -193,6 +195,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   public void prepare() {
     handler.obtainMessage(MSG_PREPARE).sendToTarget();
+  }
+
+  public void prepare(@Nullable ExoPlayer player) {
+    handler.obtainMessage(MSG_PREPARE, player).sendToTarget();
   }
 
   public void setPlayWhenReady(boolean playWhenReady) {
@@ -369,7 +375,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     try {
       switch (msg.what) {
         case MSG_PREPARE:
-          prepareInternal();
+          prepareInternal((ExoPlayer) msg.obj);
           break;
         case MSG_SET_PLAY_WHEN_READY:
           setPlayWhenReadyInternal(msg.arg1 != 0);
@@ -573,7 +579,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
   }
 
-  private void prepareInternal() {
+  private void prepareInternal(@Nullable ExoPlayer player) {
     playbackInfoUpdate.incrementPendingOperationAcks(/* operationAcks= */ 1);
     resetInternal(
         /* resetRenderers= */ false,
@@ -583,7 +589,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         /* resetError= */ true);
     loadControl.onPrepared();
     setState(playbackInfo.timeline.isEmpty() ? Player.STATE_ENDED : Player.STATE_BUFFERING);
-    playlist.prepare(bandwidthMeter.getTransferListener());
+    playlist.prepare(bandwidthMeter.getTransferListener(), player);
     handler.sendEmptyMessage(MSG_DO_SOME_WORK);
   }
 
@@ -600,7 +606,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
     Timeline timeline =
         playlist.setMediaSources(
-            playlistUpdateMessage.mediaSourceHolders, playlistUpdateMessage.shuffleOrder);
+            playlistUpdateMessage.mediaSourceHolders, playlistUpdateMessage.shuffleOrder, null);
     handlePlaylistInfoRefreshed(timeline);
   }
 
@@ -611,7 +617,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
         playlist.addMediaSources(
             insertionIndex == C.INDEX_UNSET ? playlist.getSize() : insertionIndex,
             addMessage.mediaSourceHolders,
-            addMessage.shuffleOrder);
+            addMessage.shuffleOrder, null);
     handlePlaylistInfoRefreshed(timeline);
   }
 
@@ -648,11 +654,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
     rebuffering = false;
     this.playWhenReady = playWhenReady;
     if (!playWhenReady) {
-      stopRenderers();
+      stopClockAndRenderers();
       updatePlaybackPositions();
     } else {
       if (playbackInfo.playbackState == Player.STATE_READY) {
-        startRenderers();
+        startClockAndRenderers();
         handler.sendEmptyMessage(MSG_DO_SOME_WORK);
       } else if (playbackInfo.playbackState == Player.STATE_BUFFERING) {
         handler.sendEmptyMessage(MSG_DO_SOME_WORK);
@@ -699,6 +705,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
   private void startRenderers() throws ExoPlaybackException {
     rebuffering = false;
+    if (!mediaClock.isStarted()) {
+      mediaClock.start();
+    }
+
+    for (Renderer renderer : enabledRenderers) {
+      renderer.start();
+    }
+  }
+
+  private void startClockAndRenderers() throws ExoPlaybackException {
+    rebuffering = false;
     mediaClock.start();
     for (Renderer renderer : enabledRenderers) {
       renderer.start();
@@ -706,6 +723,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
   }
 
   private void stopRenderers() throws ExoPlaybackException {
+    for (Renderer renderer : enabledRenderers) {
+      ensureStopped(renderer);
+    }
+  }
+
+  private void stopClockAndRenderers() throws ExoPlaybackException {
     mediaClock.stop();
     for (Renderer renderer : enabledRenderers) {
       ensureStopped(renderer);
@@ -821,13 +844,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
         && shouldTransitionToReadyState(renderersAllowPlayback)) {
       setState(Player.STATE_READY);
       if (playWhenReady) {
-        startRenderers();
+        if (isPlayingLive()) {
+          startRenderers();
+        } else {
+          startClockAndRenderers();
+        }
       }
     } else if (playbackInfo.playbackState == Player.STATE_READY
         && !(enabledRenderers.length == 0 ? isTimelineReady() : renderersAllowPlayback)) {
       rebuffering = playWhenReady;
       setState(Player.STATE_BUFFERING);
-      stopRenderers();
+      if (isPlayingLive()) {
+        stopRenderers();
+      } else {
+        stopClockAndRenderers();
+      }
     }
 
     if (playbackInfo.playbackState == Player.STATE_BUFFERING) {
@@ -838,7 +869,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
     if ((playWhenReady && playbackInfo.playbackState == Player.STATE_READY)
         || playbackInfo.playbackState == Player.STATE_BUFFERING) {
-      scheduleNextWork(operationStartTimeMs, ACTIVE_INTERVAL_MS);
+      scheduleNextWork(operationStartTimeMs, isPlayingOverTcp() ?
+          (isPlayingLive() ? ACTIVE_HIGH_INTERVAL_MS : ACTIVE_INTERVAL_MS) :
+          ACTIVE_HIGH_INTERVAL_MS);
     } else if (enabledRenderers.length != 0 && playbackInfo.playbackState != Player.STATE_ENDED) {
       scheduleNextWork(operationStartTimeMs, IDLE_INTERVAL_MS);
     } else {
@@ -846,6 +879,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
     }
 
     TraceUtil.endSection();
+  }
+
+  private boolean isPlayingLive(){
+    @Nullable MediaPeriodHolder playingPeriodHolder = queue.getPlayingPeriod();
+    if (playingPeriodHolder == null) {
+      return false;
+    }
+    MediaPeriod mediaPeriod = playingPeriodHolder.mediaPeriod;
+    return (mediaPeriod instanceof MaskingMediaPeriod) && ((MaskingMediaPeriod) mediaPeriod).isSourceLive();
+  }
+
+  private boolean isPlayingOverTcp(){
+    @Nullable MediaPeriodHolder playingPeriodHolder = queue.getPlayingPeriod();
+    if (playingPeriodHolder == null) {
+      return false;
+    }
+    MediaPeriod mediaPeriod = playingPeriodHolder.mediaPeriod;
+    return (mediaPeriod instanceof MaskingMediaPeriod) && ((MaskingMediaPeriod) mediaPeriod).isSourceOnTcp();
   }
 
   private void scheduleNextWork(long thisOperationStartTimeMs, long intervalMs) {

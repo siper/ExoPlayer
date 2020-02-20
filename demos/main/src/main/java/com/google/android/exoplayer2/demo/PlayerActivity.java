@@ -61,6 +61,9 @@ import com.google.android.exoplayer2.source.ads.AdsLoader;
 import com.google.android.exoplayer2.source.ads.AdsMediaSource;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.source.rtsp.RtspDefaultClient;
+import com.google.android.exoplayer2.source.rtsp.RtspMediaSource;
+import com.google.android.exoplayer2.source.rtsp.core.Client;
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
@@ -529,6 +532,12 @@ public class PlayerActivity extends AppCompatActivity
       case C.TYPE_HLS:
         return new HlsMediaSource.Factory(dataSourceFactory)
             .setDrmSessionManager(drmSessionManager)
+            .createMediaSource(uri);
+      case C.TYPE_RTSP:
+        return new RtspMediaSource.Factory(RtspDefaultClient.factory()
+            .setFlags(Client.FLAG_ENABLE_RTCP_SUPPORT)
+            .setNatMethod(Client.RTSP_NAT_DUMMY))
+            .setIsLive(true)
             .createMediaSource(uri);
       case C.TYPE_OTHER:
         return new ProgressiveMediaSource.Factory(dataSourceFactory)

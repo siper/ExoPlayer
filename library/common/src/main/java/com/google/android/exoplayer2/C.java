@@ -64,6 +64,11 @@ public final class C {
    */
   public static final int LENGTH_UNSET = -1;
 
+  /**
+   * Represents an unset or unknown port.
+   */
+  public static final int PORT_UNSET = -1;
+
   /** Represents an unset or unknown percentage. */
   public static final int PERCENTAGE_UNSET = -1;
 
@@ -581,7 +586,7 @@ public final class C {
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
-  @IntDef({TYPE_DASH, TYPE_SS, TYPE_HLS, TYPE_OTHER})
+  @IntDef({TYPE_DASH, TYPE_SS, TYPE_HLS, TYPE_RTSP, TYPE_OTHER})
   public @interface ContentType {}
   /**
    * Value returned by {@link Util#inferContentType(String)} for DASH manifests.
@@ -596,10 +601,14 @@ public final class C {
    */
   public static final int TYPE_HLS = 2;
   /**
+   * Value returned by {@link Util#inferContentType(String)} for RTSP media.
+   */
+  public static final int TYPE_RTSP = 3;
+  /**
    * Value returned by {@link Util#inferContentType(String)} for files other than DASH, HLS or
    * Smooth Streaming manifests.
    */
-  public static final int TYPE_OTHER = 3;
+  public static final int TYPE_OTHER = 4;
 
   /**
    * A return value for methods where the end of an input was encountered.
@@ -945,6 +954,21 @@ public final class C {
   public static final int NETWORK_TYPE_ETHERNET = 7;
   /** Network type for other connections which are not Wifi or cellular (e.g. VPN, Bluetooth). */
   public static final int NETWORK_TYPE_OTHER = 8;
+
+  /**
+   * Transport protocol. One of {@link #TCP}, {@link #UDP}.
+   */
+  @Documented
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef({
+      TCP,
+      UDP
+  })
+  public @interface TransportProtocol {}
+  /** Indicates TCP transport protocol */
+  public static final int TCP = 0;
+  /** Indicates UDP transport protocol */
+  public static final int UDP = 1;
 
   /**
    * Track role flags. Possible flag values are {@link #ROLE_FLAG_MAIN}, {@link

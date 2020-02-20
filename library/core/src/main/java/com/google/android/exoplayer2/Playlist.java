@@ -98,8 +98,21 @@ import java.util.Set;
    */
   public final Timeline setMediaSources(
       List<MediaSourceHolder> holders, ShuffleOrder shuffleOrder) {
+    return setMediaSources(holders, shuffleOrder, null);
+  }
+
+  /**
+   * Sets the media sources replacing any sources previously contained in the playlist.
+   *
+   * @param holders The list of {@link MediaSourceHolder}s to set.
+   * @param shuffleOrder The new shuffle order.
+   * @param player The ExoPlayer instance.
+   * @return The new {@link Timeline}.
+   */
+  public final Timeline setMediaSources(
+      List<MediaSourceHolder> holders, ShuffleOrder shuffleOrder, @Nullable ExoPlayer player) {
     removeMediaSourcesInternal(/* fromIndex= */ 0, /* toIndex= */ mediaSourceHolders.size());
-    return addMediaSources(/* index= */ this.mediaSourceHolders.size(), holders, shuffleOrder);
+    return addMediaSources(/* index= */ this.mediaSourceHolders.size(), holders, shuffleOrder, player);
   }
 
   /**
@@ -113,6 +126,22 @@ import java.util.Set;
    */
   public final Timeline addMediaSources(
       int index, List<MediaSourceHolder> holders, ShuffleOrder shuffleOrder) {
+    return addMediaSources(index, holders, shuffleOrder, null);
+  }
+
+  /**
+   * Adds multiple {@link MediaSourceHolder}s to the playlist.
+   *
+   * @param index The index at which the new {@link MediaSourceHolder}s will be inserted. This index
+   *     must be in the range of 0 &lt;= index &lt;= {@link #getSize()}.
+   * @param holders A list of {@link MediaSourceHolder}s to be added.
+   * @param shuffleOrder The new shuffle order.
+   * @param player The ExoPlayer instance.
+   * @return The new {@link Timeline}.
+   */
+  public final Timeline addMediaSources(
+      int index, List<MediaSourceHolder> holders, ShuffleOrder shuffleOrder,
+      @Nullable ExoPlayer player) {
     if (!holders.isEmpty()) {
       this.shuffleOrder = shuffleOrder;
       for (int insertionIndex = index; insertionIndex < index + holders.size(); insertionIndex++) {
@@ -133,7 +162,7 @@ import java.util.Set;
         mediaSourceHolders.add(insertionIndex, holder);
         mediaSourceByUid.put(holder.uid, holder);
         if (isPrepared) {
-          prepareChildSource(holder);
+          prepareChildSource(holder, player);
           if (mediaSourceByMediaPeriod.isEmpty()) {
             enabledMediaSourceHolders.add(holder);
           } else {
@@ -269,11 +298,17 @@ import java.util.Set;
 
   /** Prepares the playlist. */
   public final void prepare(@Nullable TransferListener mediaTransferListener) {
+    prepare(mediaTransferListener);
+  }
+
+  /** Prepares the playlist. */
+  public final void prepare(@Nullable TransferListener mediaTransferListener,
+      @Nullable ExoPlayer player) {
     Assertions.checkState(!isPrepared);
     this.mediaTransferListener = mediaTransferListener;
     for (int i = 0; i < mediaSourceHolders.size(); i++) {
       MediaSourceHolder mediaSourceHolder = mediaSourceHolders.get(i);
-      prepareChildSource(mediaSourceHolder);
+      prepareChildSource(mediaSourceHolder, player);
       enabledMediaSourceHolders.add(mediaSourceHolder);
     }
     isPrepared = true;
@@ -421,14 +456,14 @@ import java.util.Set;
     return windowIndex + mediaSourceHolder.firstWindowIndexInChild;
   }
 
-  private void prepareChildSource(MediaSourceHolder holder) {
+  private void prepareChildSource(MediaSourceHolder holder, @Nullable ExoPlayer player) {
     MediaSource mediaSource = holder.mediaSource;
     MediaSource.MediaSourceCaller caller =
         (source, timeline) -> playlistInfoListener.onPlaylistUpdateRequested();
     MediaSourceEventListener eventListener = new ForwardingEventListener(holder);
     childSources.put(holder, new MediaSourceAndListener(mediaSource, caller, eventListener));
     mediaSource.addEventListener(Util.createHandler(), eventListener);
-    mediaSource.prepareSource(caller, mediaTransferListener);
+    mediaSource.prepareSource(caller, mediaTransferListener, player);
   }
 
   private void maybeReleaseChildSource(MediaSourceHolder mediaSourceHolder) {
