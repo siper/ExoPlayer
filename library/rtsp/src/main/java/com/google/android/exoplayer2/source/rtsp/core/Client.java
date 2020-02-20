@@ -71,18 +71,23 @@ public abstract class Client implements Dispatcher.EventListener {
         " (Media Player for Android)";
 
     public static abstract class Factory<T extends Client> {
+        long delayMs;
+        int bufferSize;
+        @Mode int mode;
         String userAgent;
         @Flags int flags;
         @AVOptions int avOptions;
-        @Mode int mode = RTSP_AUTO_DETECT;
-        @NatMethod int natMethod = RTSP_NAT_NONE;
-        long delayMs = RtpDataSource.DELAY_REORDER_MS;
-        int bufferSize = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE;
+        @NatMethod int natMethod;
 
         final ExoPlayer player;
 
-        public Factory(ExoPlayer exoPlayer) {
-            this.player = exoPlayer;
+        public Factory(ExoPlayer player) {
+            this.player = player;
+            userAgent = USER_AGENT;
+            mode = RTSP_AUTO_DETECT;
+            natMethod = RTSP_NAT_NONE;
+            delayMs = RtpDataSource.DELAY_REORDER_MS;
+            bufferSize = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE;
         }
 
         public Factory<T> setFlags(@Flags int flags) {
@@ -126,38 +131,6 @@ public abstract class Client implements Dispatcher.EventListener {
         public Factory<T> setNatMethod(@NatMethod int natMethod) {
             this.natMethod = natMethod;
             return this;
-        }
-
-        ExoPlayer getPlayer() {
-            return player;
-        }
-
-        int getFlags() {
-            return flags;
-        }
-
-        int getAvOptions() {
-            return avOptions;
-        }
-
-        int getMode() {
-            return mode;
-        }
-
-        int getNatMethod() {
-            return natMethod;
-        }
-
-        long getMaxDelay() {
-            return delayMs;
-        }
-
-        int getBufferSize() {
-            return bufferSize;
-        }
-
-        String getUserAgent() {
-            return userAgent;
         }
 
         public abstract T create(Builder builder);
@@ -271,18 +244,14 @@ public abstract class Client implements Dispatcher.EventListener {
         uri = builder.uri;
         listener = builder.listener;
 
-        mode = builder.factory.getMode();
-        flags = builder.factory.getFlags();
-        player = builder.factory.getPlayer();
-        delayMs = builder.factory.getMaxDelay();
-        avOptions = builder.factory.getAvOptions();
-        natMethod = builder.factory.getNatMethod();
-        bufferSize = builder.factory.getBufferSize();
-
-        userAgent = builder.factory.getUserAgent();
-        if (userAgent == null) {
-            userAgent = USER_AGENT;
-        }
+        mode = builder.factory.mode;
+        flags = builder.factory.flags;
+        player = builder.factory.player;
+        delayMs = builder.factory.delayMs;
+        avOptions = builder.factory.avOptions;
+        natMethod = builder.factory.natMethod;
+        userAgent = builder.factory.userAgent;
+        bufferSize = builder.factory.bufferSize;
 
         serverMethods = new ArrayList<>();
 

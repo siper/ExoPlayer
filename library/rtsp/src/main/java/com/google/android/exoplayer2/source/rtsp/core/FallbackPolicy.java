@@ -21,7 +21,7 @@ public abstract class FallbackPolicy {
   public final void retryIfAllowError(Throwable error) {
     if (!isExecuteCalled && factory.mode != Client.RTSP_INTERLEAVED && isAllowError(error)) {
       isExecuteCalled = true;
-      factory.setMode(Client.RTSP_INTERLEAVED);
+      factory.mode = Client.RTSP_INTERLEAVED;
 
       new Handler(Looper.getMainLooper()).post(() -> {
         ExoPlayer player = factory.player;
