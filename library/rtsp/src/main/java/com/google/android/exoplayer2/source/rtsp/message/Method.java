@@ -15,6 +15,7 @@
  */
 package com.google.android.exoplayer2.source.rtsp.message;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public enum Method {
@@ -54,6 +55,7 @@ public enum Method {
     /**
      * Returns the string used to identify this method
      */
+    @NonNull
     @Override public String toString() {
         return name;
     }

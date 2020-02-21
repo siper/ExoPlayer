@@ -35,7 +35,7 @@ public final class Range {
     private final double endTime;
     private final long duration;
 
-    Range(String range, double startTime, double endTime) {
+    private Range(String range, double startTime, double endTime) {
         this.range = range;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -74,7 +74,7 @@ public final class Range {
                     } catch (NumberFormatException ex) {
                         String start = matcher.group(1);
 
-                        if (!start.equals("now") && !start.equals("")) {
+                        if (start != null && !"now".equals(start) && start.length() > 0) {
                             try {
                                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
                                 startTime = sdf.parse(start).getTime();
@@ -91,12 +91,12 @@ public final class Range {
                     } catch (NumberFormatException ex) {
                         String end = matcher.group(2);
 
-                        if (!end.equals("end") && !end.equals("")) {
+                        if (end != null && !"end".equals(end) && end.length() > 0) {
                             try {
                                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
                                 endTime = sdf.parse(end).getTime();
 
-                            } catch (ParseException e) {
+                            } catch (ParseException | NullPointerException e) {
                                 return null;
                             }
                         }
@@ -108,7 +108,7 @@ public final class Range {
             }
         }
         catch (Exception ex) {
-
+            // Do nothing
         }
 
         return null;
@@ -118,7 +118,6 @@ public final class Range {
      * Returns the string used to identify this range
      */
     @Override public String toString() {
-        StringBuilder str = new StringBuilder().append("npt=").append(range);
-        return str.toString();
+        return "npt=" + range;
     }
 }

@@ -57,7 +57,6 @@ public final class Transport {
     @StringDef({RTP_PROTOCOL, MP2T_PROTOCOL, RAW_PROTOCOL})
     public @interface TransportProtocol {
     }
-
     /**
      * Real Time Transport Protocol.
      */
@@ -79,7 +78,6 @@ public final class Transport {
     @StringDef({AVP_PROFILE, H2221_PROFILE, RAW_PROFILE})
     public @interface Profile {
     }
-
     /**
      * Audio Video Profile.
      */
@@ -101,7 +99,6 @@ public final class Transport {
     @StringDef({TCP, UDP})
     public @interface LowerTransport {
     }
-
     /**
      * TCP Lower Transport.
      */
@@ -119,7 +116,6 @@ public final class Transport {
     @StringDef({unicast, multicast})
     public @interface DeliveryType {
     }
-
     /**
      * Unicast Delivery.
      */
@@ -158,7 +154,7 @@ public final class Transport {
     private String ssrc;
     private int[] channels;
 
-    Transport(Transport transport) {
+    private Transport(Transport transport) {
         this.deliveryType = transport.deliveryType;
         this.transportProtocol = transport.transportProtocol;
         this.profile = transport.profile;
@@ -171,7 +167,7 @@ public final class Transport {
         this.channels = transport.channels;
     }
 
-    Transport(@TransportProtocol String transportProtocol, @Profile String profile,
+    private Transport(@TransportProtocol String transportProtocol, @Profile String profile,
               @LowerTransport String lowerTransport, String[] clientPort, String[] serverPort,
               String source, String destination, String ssrc) {
         this.deliveryType = unicast;
@@ -185,7 +181,7 @@ public final class Transport {
         this.ssrc = ssrc;
     }
 
-    Transport(@TransportProtocol String transportProtocol, @Profile String profile,
+    private Transport(@TransportProtocol String transportProtocol, @Profile String profile,
         @LowerTransport String lowerTransport, int[] channels) {
         this.deliveryType = unicast;
         this.transportProtocol = transportProtocol;
@@ -194,43 +190,43 @@ public final class Transport {
         this.channels = channels;
     }
 
-    public String transportProtocol() {
+    public String getTransportProtocol() {
         return transportProtocol;
     }
 
-    public String profile() {
+    public String getProfile() {
         return profile;
     }
 
-    public String lowerTransport() {
+    public String getLowerTransport() {
         return lowerTransport;
     }
 
-    public String deliveryType() {
+    public String getDeliveryType() {
         return deliveryType;
     }
 
-    public String[] clientPort() {
+    public String[] getClientPort() {
         return clientPort;
     }
 
-    public String[] serverPort() {
+    public String[] getServerPort() {
         return serverPort;
     }
 
-    public String source() {
+    public String getSource() {
         return source;
     }
 
-    public String destination() {
+    public String getDestination() {
         return destination;
     }
 
-    public String ssrc() {
+    public String getSsrc() {
         return ssrc;
     }
 
-    public int[] channels() { return channels; }
+    public int[] getChannels() { return channels; }
 
     @Nullable
     public static Transport parse(String mediaProtocol) {
@@ -339,7 +335,7 @@ public final class Transport {
             }
         }
         catch (Exception ex) {
-
+            // Do nothing
         }
 
         return null;

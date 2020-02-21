@@ -15,9 +15,8 @@
  */
 package com.google.android.exoplayer2.source.rtsp.message;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.io.IOException;
 
 /**
  * Protocols that RTSP implements.
@@ -35,10 +34,7 @@ public enum Protocol {
 
     /**
      * Returns the protocol identified by {@code protocol}.
-     *
-     * @throws IOException if {@code protocol} is unknown.
      */
-
     @Nullable
     public static Protocol parse(String protocol) {
         if (protocol.equalsIgnoreCase(RTSP_1_0.protocol)) return RTSP_1_0;
@@ -50,7 +46,9 @@ public enum Protocol {
     /**
      * Returns the string used to identify this protocol
      */
-    @Override public String toString() {
+    @NonNull
+    @Override
+    public String toString() {
         return protocol;
     }
 }

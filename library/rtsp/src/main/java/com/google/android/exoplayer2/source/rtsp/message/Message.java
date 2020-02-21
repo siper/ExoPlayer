@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.source.rtsp.message;
 
 import androidx.annotation.IntDef;
 
+import androidx.annotation.NonNull;
 import java.lang.annotation.Retention;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
@@ -33,14 +34,15 @@ public abstract class Message {
     protected final @MessageType int type;
 
     protected Protocol protocol;
-    protected Headers headers;
-    protected MessageBody body;
+    Headers headers;
+    MessageBody body;
 
     Message(@MessageType int type) {
         this.type = type;
         headers = new Headers();
     }
 
+    @NonNull
     @Override
     public abstract String toString();
 

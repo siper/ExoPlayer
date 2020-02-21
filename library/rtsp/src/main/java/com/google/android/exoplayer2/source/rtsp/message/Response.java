@@ -15,6 +15,7 @@
  */
 package com.google.android.exoplayer2.source.rtsp.message;
 
+import androidx.annotation.NonNull;
 import java.util.List;
 import java.util.Map;
 
@@ -22,10 +23,10 @@ import java.util.Map;
  * An RTSP response
  */
 public final class Response extends Message {
-    Protocol protocol;
-    Status status;
+    private Protocol protocol;
+    private Status status;
 
-    Response(Builder builder) {
+    private Response(Builder builder) {
         super(Message.RESPONSE);
 
         this.protocol = builder.protocol;
@@ -42,6 +43,7 @@ public final class Response extends Message {
         return (status == Status.OK);
     }
 
+    @NonNull
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

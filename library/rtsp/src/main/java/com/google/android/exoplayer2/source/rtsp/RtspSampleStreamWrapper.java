@@ -239,7 +239,7 @@ public final class RtspSampleStreamWrapper implements
         if (!prepared) {
             loadable = (session.isInterleaved()) ?
                     new TcpMediaStreamLoadable(this, handler, loadCondition) :
-                    (Transport.UDP.equals(transport.lowerTransport())) ?
+                    (Transport.UDP.equals(transport.getLowerTransport())) ?
                             new UdpMediaStreamLoadable(this, handler, loadCondition) :
                             new TcpMediaStreamLoadable(this, handler, loadCondition);
 
@@ -262,24 +262,24 @@ public final class RtspSampleStreamWrapper implements
             final int NUM_TIMES_TO_SEND = 2;
             Transport transport = track.format().transport();
 
-            if (transport.serverPort() != null && transport.serverPort().length > 0) {
-                int port = Integer.parseInt(transport.serverPort()[0]);
-                String host = (transport.source() != null) ? transport.source() :
-                        transport.destination();
+            if (transport.getServerPort() != null && transport.getServerPort().length > 0) {
+                int port = Integer.parseInt(transport.getServerPort()[0]);
+                String host = (transport.getSource() != null) ? transport.getSource() :
+                        transport.getDestination();
 
                 if (host == null || InetUtil.isPrivateIpAddress(host)) {
                     host = Uri.parse(track.url()).getHost();
                 }
 
                 boolean isNatRtcpNeeded = Transport.RTP_PROTOCOL.equals(
-                    transport.transportProtocol()) && session.isRtcpSupported() &&
-                    !session.isRtcpMuxed() && transport.serverPort().length == 2;
+                    transport.getTransportProtocol()) && session.isRtcpSupported() &&
+                    !session.isRtcpMuxed() && transport.getServerPort().length == 2;
 
                 for (int count = 0; count < NUM_TIMES_TO_SEND; count++) {
                     sendPunchPacket(host, port);
 
                     if (isNatRtcpNeeded) {
-                        int rtcpPort = Integer.parseInt(transport.serverPort()[1]);
+                        int rtcpPort = Integer.parseInt(transport.getServerPort()[1]);
                         sendPunchPacket(host, rtcpPort);
                     }
                 }
@@ -352,11 +352,6 @@ public final class RtspSampleStreamWrapper implements
      */
     boolean seekToUs(long positionUs) {
         lastSeekPositionUs = positionUs;
-        // See if we can seek inside the samples queue.
-        if (sampleQueuesBuilt && seekInsideBufferUs(positionUs)) {
-            return false;
-        }
-
         // We were unable to seek within the buffer, so need discard to end.
         for (SampleQueue sampleQueue : sampleQueues) {
             sampleQueue.discardToEnd();
@@ -517,12 +512,6 @@ public final class RtspSampleStreamWrapper implements
         } else {
             return loadingFinished ? C.TIME_END_OF_SOURCE : getBufferedPositionUs();
         }
-
-        /*if (isPendingReset()) {
-            return pendingResetPositionUs;
-        } else {
-            return enabledTrackCount == 0 ? C.TIME_END_OF_SOURCE : getBufferedPositionUs();
-        }*/
     }
 
     @Override
@@ -574,7 +563,7 @@ public final class RtspSampleStreamWrapper implements
 
         } else {
             Transport transport = track.format().transport();
-            if (Transport.TCP.equals(transport.lowerTransport())) {
+            if (Transport.TCP.equals(transport.getLowerTransport())) {
                 this.loadable = new TcpMediaStreamLoadable(this, handler,
                         loadCondition, true);
                 loader.startLoading(this.loadable, looper, this, 0);
@@ -822,10 +811,10 @@ public final class RtspSampleStreamWrapper implements
                 MediaFormat format = track.format();
                 Transport transport = format.transport();
 
-                if (Transport.RTP_PROTOCOL.equals(transport.transportProtocol())) {
-                    if (transport.ssrc() != null) {
+                if (Transport.RTP_PROTOCOL.equals(transport.getTransportProtocol())) {
+                    if (transport.getSsrc() != null) {
                         ((RtpDataSource) dataSource)
-                                .setSsrc(Long.parseLong(transport.ssrc(), 16));
+                                .setSsrc(Long.parseLong(transport.getSsrc(), 16));
                     }
 
                     extractorInput = new RtpExtractorInput(dataSource);
@@ -840,13 +829,13 @@ public final class RtspSampleStreamWrapper implements
                     extractorInput = new DefaultExtractorInput(dataSource,
                             0, C.LENGTH_UNSET);
 
-                    if (Transport.MP2T_PROTOCOL.equals(transport.transportProtocol())) {
+                    if (Transport.MP2T_PROTOCOL.equals(transport.getTransportProtocol())) {
                         extractor = new TsExtractor(FLAG_ALLOW_NON_IDR_KEYFRAMES);
                     }
                 }
 
                 if (extractor == null) {
-                    if (Transport.RAW_PROTOCOL.equals(transport.transportProtocol())) {
+                    if (Transport.RAW_PROTOCOL.equals(transport.getTransportProtocol())) {
                         extractor = Assertions.checkNotNull(createRawExtractor(extractorInput));
                     }
                 }
@@ -984,7 +973,7 @@ public final class RtspSampleStreamWrapper implements
             Transport transport = format.transport();
             boolean isUdpSchema = false;
 
-            if (Transport.RTP_PROTOCOL.equals(transport.transportProtocol())) {
+            if (Transport.RTP_PROTOCOL.equals(transport.getTransportProtocol())) {
                 @RtpDataSource.Flags int flags = 0;
                 RtpPayloadFormat payloadFormat = format.format();
                 if (session.isRtcpSupported()) {
@@ -1073,7 +1062,7 @@ public final class RtspSampleStreamWrapper implements
             MediaFormat format = track.format();
             Transport transport = format.transport();
 
-            if (Transport.RTP_PROTOCOL.equals(transport.transportProtocol())) {
+            if (Transport.RTP_PROTOCOL.equals(transport.getTransportProtocol())) {
                 RtpPayloadFormat payloadFormat = format.format();
                 queueHolder.open(payloadFormat.clockrate());
 

@@ -89,7 +89,7 @@ public final class MediaFormat {
         public MediaFormat build() {
             if (transport == null) throw new IllegalStateException("transport is null");
 
-            if (Transport.AVP_PROFILE.equals(transport.profile())) {
+            if (Transport.AVP_PROFILE.equals(transport.getProfile())) {
                 if (format == null) throw new IllegalStateException("format is null");
             }
 

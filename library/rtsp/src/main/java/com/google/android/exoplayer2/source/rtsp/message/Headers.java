@@ -135,7 +135,7 @@ public final class Headers {
         return null;
     }
 
-    public List<String> values(Header header) {
+    public List<String> getValues(Header header) {
         if (header == null) throw new NullPointerException("header is null");
         if (headers.containsKey(header.toString()))
             return headers.get(header.toString());
@@ -178,14 +178,14 @@ public final class Headers {
     }
 
     public static long getContentLength(Request request) {
-        return contentLength(request.headers);
+        return getContentLength(request.headers);
     }
 
     public static long getContentLength(Response response) {
-        return contentLength(response.headers);
+        return getContentLength(response.headers);
     }
 
-    public static long contentLength(Headers headers) {
+    public static long getContentLength(Headers headers) {
         return stringToLong(headers.getValue(Header.ContentLength));
     }
 

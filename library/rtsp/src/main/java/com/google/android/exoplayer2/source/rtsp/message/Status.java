@@ -15,6 +15,7 @@
  */
 package com.google.android.exoplayer2.source.rtsp.message;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
@@ -86,11 +87,9 @@ public enum Status {
 
     /**
      * Returns the status identified by {@code code}.
-     *
-     * @throws IOException if {@code code} is unknown.
      */
     @Nullable
-    public static Status parse(int code) throws IOException {
+    public static Status parse(int code) {
         for (Status status : Status.values()) {
             if (status.code() == code) return status;
         }
@@ -101,7 +100,9 @@ public enum Status {
     /**
      * Returns the string used to identify this status
      */
-    @Override public String toString() {
+    @NonNull
+    @Override
+    public String toString() {
         return reason();
     }
 }

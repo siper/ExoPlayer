@@ -15,6 +15,7 @@
  */
 package com.google.android.exoplayer2.source.rtsp.message;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
@@ -24,10 +25,10 @@ import java.util.Map;
  * An RTSP request
  */
 public final class Request extends Message {
-    String url;
-    Method method;
+    private String url;
+    private Method method;
 
-    Request(Builder builder) {
+    private Request(Builder builder) {
         super(Message.REQUEST);
 
         this.url = builder.url;
@@ -46,6 +47,7 @@ public final class Request extends Message {
         return method;
     }
 
+    @NonNull
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

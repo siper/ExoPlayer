@@ -456,7 +456,7 @@ public abstract class Client implements Dispatcher.EventListener {
     public final void onDescribeResponse(Response response) {
         MessageBody body = response.getMessageBody();
         Headers headers = response.getHeaders();
-        String baseUrl = null;
+        String baseUrl = session.getUri().toString();
 
         if (headers.contains(Header.ContentBase)) {
             baseUrl = headers.getValue(Header.ContentBase);
@@ -519,7 +519,7 @@ public abstract class Client implements Dispatcher.EventListener {
                                 MediaFormat.Builder formatBuilder = new MediaFormat.Builder(type);
 
                                 Transport transport = Transport.parse(media.getProto(), media.getFmt());
-                                if (Transport.AVP_PROFILE.equals(transport.profile())) {
+                                if (Transport.AVP_PROFILE.equals(transport.getProfile())) {
                                     payloadBuilder = MediaFormat.AUDIO == type ?
                                             new RtpAudioPayload.Builder() :
                                             new RtpVideoPayload.Builder();
@@ -780,7 +780,7 @@ public abstract class Client implements Dispatcher.EventListener {
 
     @Override
     public final void onUnauthorized(Request request, Response response) {
-        List<String> w3AuthenticateList = response.getHeaders().values(Header.W3Authenticate);
+        List<String> w3AuthenticateList = response.getHeaders().getValues(Header.W3Authenticate);
 
         for (String w3Authenticate : w3AuthenticateList) {
             Matcher matcher = regexAuth.matcher(w3Authenticate);

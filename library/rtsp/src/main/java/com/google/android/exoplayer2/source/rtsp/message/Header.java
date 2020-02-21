@@ -15,6 +15,7 @@
  */
 package com.google.android.exoplayer2.source.rtsp.message;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 /**
@@ -103,7 +104,9 @@ public enum Header {
     /**
      * Returns the string used to identify this header
      */
-    @Override public String toString() {
+    @NonNull
+    @Override
+    public String toString() {
         return name;
     }
 }

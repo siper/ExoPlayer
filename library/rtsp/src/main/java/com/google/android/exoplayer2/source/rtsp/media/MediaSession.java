@@ -393,17 +393,17 @@ public final class MediaSession implements Player.EventListener {
             RtspSampleStreamWrapper sampleStreamWrapper = preparedSamples[currentSample];
             sampleStreamWrapper.getMediaTrack().format().transport(transport);
 
-            if (Transport.TCP.equals(transport.lowerTransport())) {
+            if (Transport.TCP.equals(transport.getLowerTransport())) {
                 int channelsCount = tcpChannels.length;
                 tcpChannels = Arrays.copyOf(tcpChannels,
-                    channelsCount + transport.channels().length);
+                    channelsCount + transport.getChannels().length);
 
-                System.arraycopy(transport.channels(), 0, tcpChannels, channelsCount,
-                    transport.channels().length);
+                System.arraycopy(transport.getChannels(), 0, tcpChannels, channelsCount,
+                    transport.getChannels().length);
 
-                sampleStreamWrapper.setInterleavedChannels(transport.channels());
+                sampleStreamWrapper.setInterleavedChannels(transport.getChannels());
 
-                for (int channel : transport.channels()) {
+                for (int channel : transport.getChannels()) {
                     interleavedListeners.put(channel, sampleStreamWrapper);
                 }
 
