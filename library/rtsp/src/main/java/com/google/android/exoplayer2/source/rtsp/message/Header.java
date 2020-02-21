@@ -74,6 +74,7 @@ public enum Header {
     xAcceptRetransmit("x-Accept-Retransmit"),
     xAcceptDynamicRate("x-Accept-Dynamic-Rate"),
     xDynamicRate("x-Dynamic-Rate"),
+    xForwardedFor("X-Forwarded-For"),
     XmayNotify("x-mayNotify"),
     XplayNow("x-playNow"),
     XnoFlush("x-noFlush");
