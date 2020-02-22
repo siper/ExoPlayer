@@ -55,7 +55,11 @@ import java.util.Arrays;
     }
 
     @Override
-    public void seek() { }
+    public void seek(long position, long timeUs) {
+        fragmentedVp8Frame.reset();
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
+    }
 
     @Override
     public void createTracks(ExtractorOutput extractorOutput, TrackIdGenerator trackIdGenerator) {

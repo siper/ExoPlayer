@@ -227,7 +227,7 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
     @Override
     public void onClientError(Throwable throwable) {
         if (eventDispatcher != null) {
-            eventDispatcher.loadError(new DataSpec(uri), uri, null, C.DATA_TYPE_MEDIA,
+            eventDispatcher.loadError(new DataSpec(uri), uri, null, C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE,
                 0, 0, 0, (IOException) throwable, false);
         }
     }

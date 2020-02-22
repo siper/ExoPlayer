@@ -23,6 +23,7 @@ import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.UdpDataSource;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -78,7 +79,7 @@ public final class RtpBufferedDataSource extends UdpDataSource {
             try {
                 timer.schedule(timerTask, 5000);
             } catch (IllegalStateException ex) {
-
+                // Do nothing
             }
         }
     }
@@ -95,16 +96,16 @@ public final class RtpBufferedDataSource extends UdpDataSource {
     private RtpStats stats;
     private RtcpStatsFeedback statsFeedback;
 
-    private final RtpQueue queue;
+    private volatile RtpQueue samplesQueue;
 
-    public RtpBufferedDataSource(RtpQueueHolder samplesHolder) {
-        this(samplesHolder, null, null);
+    public RtpBufferedDataSource(RtpQueue samplesQueue) {
+        this(samplesQueue, null, null);
     }
 
-    public RtpBufferedDataSource(RtpQueueHolder queueHolder,
+    public RtpBufferedDataSource(RtpQueue samplesQueue,
         RtcpInputReportDispatcher incomingReportDispatcher,
         RtcpOutputReportDispatcher outgoingReportDispatcher) {
-        queue = queueHolder.queue();
+        this.samplesQueue = samplesQueue;
         timeoutMonitor = new TimeoutMonitor();
 
         if (incomingReportDispatcher != null && outgoingReportDispatcher != null) {
@@ -137,7 +138,7 @@ public final class RtpBufferedDataSource extends UdpDataSource {
     public int read(byte[] buffer, int offset, int readLength) throws IOException {
         if (opened && !canceled) {
             /* There is no reordering on stream sockets */
-            RtpPacket packet = queue.pop();
+            RtpPacket packet = samplesQueue.pop();
             if (packet != null) {
 
                 if (stats != null) {
@@ -145,7 +146,7 @@ public final class RtpBufferedDataSource extends UdpDataSource {
                         statsFeedback.setRemoteSsrc(packet.ssrc());
                     }
 
-                    stats.update(queue.getStats());
+                    stats.update(samplesQueue.getStats());
                 }
 
                 byte[] bytes = packet.getBytes();
@@ -160,6 +161,10 @@ public final class RtpBufferedDataSource extends UdpDataSource {
             }
 
             return 0;
+        }
+
+        if (canceled) {
+            throw new SocketTimeoutException();
         }
 
         return C.RESULT_END_OF_INPUT;
@@ -178,6 +183,7 @@ public final class RtpBufferedDataSource extends UdpDataSource {
 
             if (stats != null) {
                 reportDispatcher.removeListener(statsFeedback);
+                samplesQueue.reset();
                 statsFeedback.close();
             }
 

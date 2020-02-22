@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.source.rtp.extractor;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.util.Assertions;
 
 /*package*/ final class RtpTimestampAdjuster {
   private long firstSampleTimestamp;
@@ -25,25 +26,53 @@ import com.google.android.exoplayer2.C;
 
   private final int clockrate;
 
+  /**
+   * @param clockrate The kHz clock.
+   */
   public RtpTimestampAdjuster(int clockrate) {
     this.clockrate = clockrate;
     firstSampleTimestamp = C.TIME_UNSET;
   }
 
+  /** Returns the kHz clock */
   public int getClockrate() { return clockrate; }
 
-  public void adjustSampleTimestamp(long time) {
+  /**
+   * Offsets a timestamp in microseconds.
+   *
+   * @param timeUs The timestamp to adjust in microseconds.
+   * @return The adjusted timestamp in microseconds.
+   */
+  public void adjustSampleTimestamp(long timeUs) {
     if (firstSampleTimestamp == C.TIME_UNSET) {
-      firstSampleTimestamp = time;
+      firstSampleTimestamp = timeUs;
     } else {
-      timestampOffset = time - firstSampleTimestamp;
+      timestampOffset = timeUs - firstSampleTimestamp;
     }
 
     sampleTimestampUs = (timestampOffset * C.MICROS_PER_SECOND) / clockrate;
   }
 
+  /** Returns the last value passed to {@link #adjustSampleTimestamp(long)}. */
   public long getSampleTimeUs() {
     return sampleTimestampUs;
   }
 
+  /**
+   * Resets the instance to its initial state.
+   */
+  public void reset() {
+    sampleTimestampUs = C.TIME_UNSET;
+  }
+
+  /**
+   * Sets the desired result of the first call to {@link #adjustSampleTimestamp(long)}.
+   *
+   * @param firstSampleTimestampUs The first adjusted sample timestamp in microseconds. Can only be
+   * called before any timestamps have been adjusted.
+   */
+  public synchronized void setFirstSampleTimestampUs(long firstSampleTimestampUs) {
+    Assertions.checkState(sampleTimestampUs == C.TIME_UNSET);
+    this.firstSampleTimestamp = firstSampleTimestampUs;
+  }
 }

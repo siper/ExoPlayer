@@ -108,7 +108,11 @@ import java.util.List;
     }
 
     @Override
-    public void seek() {
+    public void seek(long position, long timeUs) {
+        fragments.reset();
+        lastSequenceNumber = -1;
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
     }
 
     @Override

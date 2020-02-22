@@ -30,7 +30,7 @@ import com.google.android.exoplayer2.source.rtp.format.FormatSpecificParameter;
 import com.google.android.exoplayer2.source.rtp.format.RtpAudioPayload;
 import com.google.android.exoplayer2.source.rtp.format.RtpPayloadFormat;
 import com.google.android.exoplayer2.source.rtp.format.RtpVideoPayload;
-import com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource;
+import com.google.android.exoplayer2.source.rtp.upstream.RtpQueue;
 import com.google.android.exoplayer2.source.rtsp.RtspSampleStreamWrapper;
 import com.google.android.exoplayer2.source.rtsp.auth.AuthScheme;
 import com.google.android.exoplayer2.source.rtsp.auth.BasicCredentials;
@@ -86,7 +86,7 @@ public abstract class Client implements Dispatcher.EventListener {
             userAgent = USER_AGENT;
             mode = RTSP_AUTO_DETECT;
             natMethod = RTSP_NAT_NONE;
-            delayMs = RtpDataSource.DELAY_REORDER_MS;
+            delayMs = RtpQueue.DELAY_REORDER_MS;
             bufferSize = UdpDataSource.DEFAULT_RECEIVE_BUFFER_SIZE;
         }
 

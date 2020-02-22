@@ -44,8 +44,8 @@ import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA;
 import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
+import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE;
 
 /* package */ final class RtspMediaPeriod implements MediaPeriod, RtspSampleStreamWrapper.EventListener,
         SequenceableLoader.Callback<RtspSampleStreamWrapper> {
@@ -371,7 +371,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
                 session.close();
 
                 eventDispatcher.loadCanceled(new DataSpec(session.getUri()), session.getUri(), null,
-                        DATA_TYPE_MEDIA, 0, 0, 0);
+                    DATA_TYPE_MEDIA_PROGRESSIVE_LIVE, 0, session.getDuration(), 0);
             }
         }
     }
@@ -386,7 +386,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
                 session.close();
 
                 eventDispatcher.loadCompleted(new DataSpec(session.getUri()), session.getUri(), null,
-                        DATA_TYPE_MEDIA, 0, 0, 0);
+                    DATA_TYPE_MEDIA_PROGRESSIVE_LIVE, 0, session.getDuration(), 0);
             }
         }
     }
@@ -402,7 +402,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
                 session.close();
 
                 eventDispatcher.loadError(new DataSpec(session.getUri()), session.getUri(), null,
-                        DATA_TYPE_MEDIA, 0, 0, 0, null, false);
+                    DATA_TYPE_MEDIA_PROGRESSIVE_LIVE, 0, session.getDuration(), 0, null, false);
 
                 if (!session.isInFallback()) {
                     fallbackPolicy.retryIfAllowError(error);
@@ -444,7 +444,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_INITIALIZATION;
 
         session.prepareStreams(sampleStreamWrappers);
 
-        eventDispatcher.loadStarted(new DataSpec(session.getUri()), DATA_TYPE_MEDIA,
+        eventDispatcher.loadStarted(new DataSpec(session.getUri()), DATA_TYPE_MEDIA_PROGRESSIVE_LIVE,
                 SystemClock.elapsedRealtime());
     }
 

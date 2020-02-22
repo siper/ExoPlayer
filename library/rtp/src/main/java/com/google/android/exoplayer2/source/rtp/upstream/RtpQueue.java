@@ -18,19 +18,29 @@ package com.google.android.exoplayer2.source.rtp.upstream;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.source.rtp.RtpPacket;
 
-/* package */ abstract class RtpQueue {
+public abstract class RtpQueue {
+
+    public static final long DELAY_REORDER_MS = (C.MICROS_PER_SECOND / 40); // 25 msec
 
     static final int MAX_DROPOUT = 3000;
     static final int RTP_SEQ_MOD = 1<<16;
 
-    boolean isStarted;
     long arrivalTimestamp;
+    volatile boolean isStarted;
 
     private long lastSentTimestamp;
     private long lastArrivalTimestamp;
 
     final int clockrate;
     final RtpStats stats;
+
+    public static RtpQueue createSimpleQueue(int clockrate) {
+        return new RtpSimpleQueue(clockrate);
+    }
+
+    public static RtpQueue createPriorityQueue(int clockrate, long delayMs) {
+        return new RtpPriorityQueue(clockrate, delayMs);
+    }
 
     RtpQueue(int clockrate) {
         this.clockrate = clockrate;
@@ -61,7 +71,7 @@ import com.google.android.exoplayer2.source.rtp.RtpPacket;
 
     public abstract RtpPacket pop();
 
-    public abstract void clear();
+    public abstract void reset();
 
     final synchronized RtpStats getStats() {
         return stats.clone();

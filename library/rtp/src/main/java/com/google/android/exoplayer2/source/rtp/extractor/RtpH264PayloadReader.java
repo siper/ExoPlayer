@@ -99,8 +99,12 @@ import java.util.List;
     }
 
     @Override
-    public void seek() {
+    public void seek(long position, long timeUs) {
+        fragments.reset();
         sampleReader.reset();
+        lastSequenceNumber = -1;
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
     }
 
     @Override
@@ -551,7 +555,6 @@ import java.util.List;
         private int deltaPicOrderCnt0;
         private int deltaPicOrderCnt1;
 
-        private byte[] buffer;
         private final ParsableNalUnitBitArray bitArray;
 
         private final boolean detectAccessUnits;
@@ -565,7 +568,7 @@ import java.util.List;
             this.pps = pps;
             this.detectAccessUnits = detectAccessUnits;
 
-            buffer = new byte[DEFAULT_BUFFER_SIZE];
+            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
             bitArray = new ParsableNalUnitBitArray(buffer, 0, 0);
         }
 

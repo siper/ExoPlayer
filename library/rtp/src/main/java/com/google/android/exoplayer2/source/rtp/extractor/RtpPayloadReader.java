@@ -58,8 +58,11 @@ import com.google.android.exoplayer2.util.TrackIdGenerator;
 
     /**
      * Notifies the reader that a seek has occurred.
+     *
+     * @param position The byte offset in the stream from which data will be provided.
+     * @param timeUs The seek time in microseconds.
      */
-    void seek();
+    void seek(long position, long timeUs);
 
     /**
      * Called when a packet starts.

@@ -175,8 +175,10 @@ import java.util.Arrays;
     }
 
     @Override
-    public void seek() {
+    public void seek(long position, long timeUs) {
         fragmentedJpegFrame.reset();
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
     }
 
     @Override

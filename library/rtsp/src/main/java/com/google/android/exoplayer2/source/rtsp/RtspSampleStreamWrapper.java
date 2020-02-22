@@ -53,7 +53,7 @@ import com.google.android.exoplayer2.source.rtp.upstream.RtcpInputReportDispatch
 import com.google.android.exoplayer2.source.rtp.upstream.RtcpOutputReportDispatcher;
 import com.google.android.exoplayer2.source.rtp.upstream.RtpBufferedDataSource;
 import com.google.android.exoplayer2.source.rtp.upstream.RtpDataSource;
-import com.google.android.exoplayer2.source.rtp.upstream.RtpQueueHolder;
+import com.google.android.exoplayer2.source.rtp.upstream.RtpQueue;
 import com.google.android.exoplayer2.source.rtsp.message.InterleavedFrame;
 import com.google.android.exoplayer2.source.rtsp.message.Transport;
 import com.google.android.exoplayer2.source.rtsp.media.MediaFormat;
@@ -165,7 +165,7 @@ public final class RtspSampleStreamWrapper implements
 
     private final TrackIdGenerator trackIdGenerator;
 
-    private final RtpQueueHolder queueHolder;
+    private volatile RtpQueue samplesQueue;
     private final RtcpInputReportDispatcher inReportDispatcher;
     private final RtcpOutputReportDispatcher outReportDispatcher;
 
@@ -204,7 +204,6 @@ public final class RtspSampleStreamWrapper implements
 
         trackGroupEnabledStates = new boolean[0];
 
-        queueHolder = new RtpQueueHolder();
         inReportDispatcher = new RtcpInputReportDispatcher();
 
         outReportDispatcher = new RtcpOutputReportDispatcher();
@@ -310,7 +309,7 @@ public final class RtspSampleStreamWrapper implements
             byte[] buffer = interleavedFrame.getData();
 
             if (interleavedFrame.getChannel() == interleavedChannels[0]) {
-                queueHolder.put(RtpPacket.parse(buffer, buffer.length));
+                samplesQueue.offer(RtpPacket.parse(buffer, buffer.length));
 
             } else if (interleavedChannels.length > 1 &&
                 interleavedFrame.getChannel() == interleavedChannels[1]) {
@@ -387,7 +386,6 @@ public final class RtspSampleStreamWrapper implements
             }
 
             inReportDispatcher.close();
-            queueHolder.close();
 
             outReportDispatcher.removeListener(this);
             outReportDispatcher.close();
@@ -901,7 +899,7 @@ public final class RtspSampleStreamWrapper implements
             return pendingReset;
         }
 
-        int readInternal(@NonNull PositionHolder seekPosition) throws IOException,
+        int readInternal(@Nullable PositionHolder seekPosition) throws IOException,
             InterruptedException {
             return extractor.read(extractorInput, seekPosition);
         }
@@ -984,10 +982,13 @@ public final class RtspSampleStreamWrapper implements
                     flags |= FLAG_FORCE_RTCP_MULTIPLEXING;
                 }
 
-                dataSource = new RtpDataSource(payloadFormat.clockrate(), flags, bufferSize, delayMs);
+                RtpQueue samplesQueue = (delayMs > 0) ?
+                    RtpQueue.createPriorityQueue(payloadFormat.clockrate(), delayMs) :
+                    RtpQueue.createSimpleQueue(payloadFormat.clockrate());
+                dataSource = new RtpDataSource(samplesQueue, flags, bufferSize);
 
             } else {
-                dataSource = new UdpDataSinkSource(UdpDataSource.MAX_PACKET_SIZE, bufferSize);
+                dataSource = new UdpDataSinkSource(UdpDataSource.DEFAULT_MAX_PACKET_SIZE, bufferSize);
                 isUdpSchema = true;
             }
 
@@ -1022,6 +1023,7 @@ public final class RtspSampleStreamWrapper implements
                 }
 
                 if (isPendingReset() && pendingResetPositionUs != C.TIME_UNSET) {
+                    samplesQueue.reset();
                     seekInternal(pendingResetPositionUs);
                     pendingResetPositionUs = C.TIME_UNSET;
                 }
@@ -1064,17 +1066,17 @@ public final class RtspSampleStreamWrapper implements
 
             if (Transport.RTP_PROTOCOL.equals(transport.getTransportProtocol())) {
                 RtpPayloadFormat payloadFormat = format.format();
-                queueHolder.open(payloadFormat.clockrate());
+                samplesQueue = RtpQueue.createSimpleQueue(payloadFormat.clockrate());
 
                 if (session.isRtcpSupported()) {
                     inReportDispatcher.open();
                     outReportDispatcher.open();
 
-                    dataSource = new RtpBufferedDataSource(queueHolder, inReportDispatcher,
+                    dataSource = new RtpBufferedDataSource(samplesQueue, inReportDispatcher,
                         outReportDispatcher);
 
                 } else {
-                    dataSource = new RtpBufferedDataSource(queueHolder);
+                    dataSource = new RtpBufferedDataSource(samplesQueue);
                 }
 
                 dataSource.addTransferListener(transferListener);
@@ -1094,6 +1096,7 @@ public final class RtspSampleStreamWrapper implements
                 }
 
                 if (isPendingReset() && pendingResetPositionUs != C.TIME_UNSET) {
+                    samplesQueue.reset();
                     seekInternal(pendingResetPositionUs);
                     pendingResetPositionUs = C.TIME_UNSET;
                 }

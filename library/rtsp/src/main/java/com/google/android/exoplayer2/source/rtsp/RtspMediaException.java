@@ -85,7 +85,7 @@ public final class RtspMediaException extends Exception {
    * @return The created instance.
    */
   static RtspMediaException createForCancellation(CancellationException cause) {
-    return new RtspMediaException(UNSUPPORTED_FORMAT, cause);
+    return new RtspMediaException(LOAD_CANCELLED, cause);
   }
 
   /**

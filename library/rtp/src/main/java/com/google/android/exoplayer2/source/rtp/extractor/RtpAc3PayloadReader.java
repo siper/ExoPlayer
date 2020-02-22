@@ -64,8 +64,11 @@ import java.util.Arrays;
     }
 
     @Override
-    public void seek() {
-        // Do nothing
+    public void seek(long position, long timeUs) {
+        lastSequenceNumber = C.POSITION_UNSET;
+        fragmentedAc3Frame.reset();
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
     }
 
     @Override
@@ -87,7 +90,7 @@ import java.util.Arrays;
         this.completeFrameIndicator = completeFrameIndicator;
         timestampAdjuster.adjustSampleTimestamp(sampleTimeStamp);
 
-        if (lastSequenceNumber == -1) {
+        if (lastSequenceNumber == C.POSITION_UNSET) {
             lastSequenceNumber = sequenceNumber - 1;
         }
 

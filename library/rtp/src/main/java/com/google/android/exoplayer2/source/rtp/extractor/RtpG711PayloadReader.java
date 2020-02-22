@@ -79,7 +79,11 @@ import java.lang.annotation.RetentionPolicy;
     }
 
     @Override
-    public void seek() { }
+    public void seek(long position, long timeUs) {
+        lastSequenceNumber = C.POSITION_UNSET;
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
+    }
 
     @Override
     public void createTracks(ExtractorOutput extractorOutput, TrackIdGenerator trackIdGenerator) {
@@ -100,7 +104,7 @@ import java.lang.annotation.RetentionPolicy;
                                  int sequenceNumber) {
         timestampAdjuster.adjustSampleTimestamp(sampleTimeStamp);
 
-        if (lastSequenceNumber == -1) {
+        if (lastSequenceNumber == C.POSITION_UNSET) {
             lastSequenceNumber = sequenceNumber - 1;
         }
 

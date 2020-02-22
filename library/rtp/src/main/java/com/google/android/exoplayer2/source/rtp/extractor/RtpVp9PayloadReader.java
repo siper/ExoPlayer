@@ -46,8 +46,6 @@ import java.util.Arrays;
     private String formatId;
     private boolean hasOutputFormat;
 
-    private int sequenceNumber;
-
     public RtpVp9PayloadReader(RtpVideoPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
@@ -58,7 +56,11 @@ import java.util.Arrays;
     }
 
     @Override
-    public void seek() { }
+    public void seek(long position, long timeUs) {
+        fragmentedVp9Frame.reset();
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
+    }
 
     @Override
     public void createTracks(ExtractorOutput extractorOutput, TrackIdGenerator trackIdGenerator) {
@@ -88,8 +90,6 @@ import java.util.Arrays;
         if (completeFrameIndicator) {
             timestampAdjuster.adjustSampleTimestamp(sampleTimeStamp);
         }
-
-        this.sequenceNumber = sequenceNumber;
 
         return true;
     }

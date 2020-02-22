@@ -70,12 +70,12 @@ import java.util.TreeSet;
 
     private volatile int lastSequence; // last sequence number pop
 
-    private final long maxDelay;
+    private final long delayMs;
     private final TreeSet<RtpPriorityPacket> packets;
 
-    public RtpPriorityQueue(int clockrate, long maxDelayMs) {
+    RtpPriorityQueue(int clockrate, long delayMs) {
         super(clockrate);
-        maxDelay = maxDelayMs;
+        this.delayMs = delayMs;
 
         packets = new TreeSet<>();
     }
@@ -167,8 +167,8 @@ import java.util.TreeSet;
             }
 
             // Make sure we wait at least for min delay established
-            if (deadlineTimestamp < maxDelay) {
-                deadlineTimestamp = maxDelay;
+            if (deadlineTimestamp < delayMs) {
+                deadlineTimestamp = delayMs;
             }
 
             deadlineTimestamp /= 1000;
@@ -195,7 +195,8 @@ import java.util.TreeSet;
     }
 
     @Override
-    public synchronized void clear() {
+    public synchronized void reset() {
         packets.clear();
+        isStarted = false;
     }
 }

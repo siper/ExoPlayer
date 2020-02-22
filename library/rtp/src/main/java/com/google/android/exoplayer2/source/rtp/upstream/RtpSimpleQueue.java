@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
     private final Queue<RtpPacket> packets;
 
-    public RtpSimpleQueue(int clockrate) {
+    RtpSimpleQueue(int clockrate) {
         super(clockrate);
 
         packets = new ConcurrentLinkedQueue<>();
@@ -54,8 +54,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
     }
 
     @Override
-    public synchronized void clear() {
+    public synchronized void reset() {
         packets.clear();
+        isStarted = false;
+        stats.jitter = 0;
     }
 
 }

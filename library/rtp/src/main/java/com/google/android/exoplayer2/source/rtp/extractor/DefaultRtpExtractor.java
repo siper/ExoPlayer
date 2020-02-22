@@ -15,6 +15,7 @@
  */
 package com.google.android.exoplayer2.source.rtp.extractor;
 
+import android.util.Log;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorInput;
@@ -97,7 +98,8 @@ public final class DefaultRtpExtractor implements Extractor {
 
     @Override
     public void seek(long position, long timeUs) {
-        // Do nothing
+        Log.v("DefaultRtpExtractor", "position=[" + position + "], timeUs=[" + timeUs + "]");
+        payloadReader.seek(position, timeUs);
     }
 
     @Override

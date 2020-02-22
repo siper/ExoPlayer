@@ -86,8 +86,11 @@ import java.util.List;
     }
 
     @Override
-    public void seek() {
-        // Do nothing
+    public void seek(long position, long timeUs) {
+        fragmentedAacFrame.reset();
+        timestampAdjuster.reset();
+        lastSequenceNumber = C.POSITION_UNSET;
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
     }
 
     @Override
@@ -111,7 +114,7 @@ import java.util.List;
         this.completeFrameIndicator = completeFrameIndicator;
         timestampAdjuster.adjustSampleTimestamp(sampleTimeStamp);
 
-        if (lastSequenceNumber == -1) {
+        if (lastSequenceNumber == C.POSITION_UNSET) {
             lastSequenceNumber = sequenceNumber - 1;
         }
 

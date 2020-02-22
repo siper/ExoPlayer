@@ -33,10 +33,10 @@ public class UdpDataSource extends BaseDataSource {
    */
   public static final int DEFAULT_PACKET_SIZE = 1480;
 
-  /** The maximum datagram packet size, in bytes.
+  /** The default maximum datagram packet size, in bytes.
    * 65535 bytes minus IP header (20 bytes) and UDP header (8 bytes)
    */
-  public static final int MAX_PACKET_SIZE = 65507;
+  public static final int DEFAULT_MAX_PACKET_SIZE = 65507;
 
   /** The default maximum receive buffer size, in bytes. */
   public static final int DEFAULT_RECEIVE_BUFFER_SIZE = 200 * 1024;

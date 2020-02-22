@@ -49,7 +49,10 @@ import java.util.List;
     }
 
     @Override
-    public void seek() { }
+    public void seek(long position, long timeUs) {
+        timestampAdjuster.reset();
+        timestampAdjuster.adjustSampleTimestamp(timeUs);
+    }
 
     @Override
     public void createTracks(ExtractorOutput extractorOutput, TrackIdGenerator trackIdGenerator) {
