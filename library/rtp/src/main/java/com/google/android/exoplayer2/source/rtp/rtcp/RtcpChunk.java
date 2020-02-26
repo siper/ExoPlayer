@@ -38,7 +38,7 @@ public class RtcpChunk {
     private final long ssrc;
     private final RtcpSdesItem[] sdesItems;
 
-    RtcpChunk(Builder builder) {
+    private RtcpChunk(Builder builder) {
         ssrc = builder.ssrc;
         sdesItems = builder.sdesItems;
 

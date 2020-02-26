@@ -45,8 +45,8 @@ import java.util.TreeSet;
             final int EQUAL = 0;
             final int GREATER = 1;
 
-            int sequenceSample = sample.packet.sequenceNumber();
-            int sequenceDelta = packet.sequenceNumber() - sequenceSample;
+            int sequenceSample = sample.packet.getSequenceNumber();
+            int sequenceDelta = packet.getSequenceNumber() - sequenceSample;
 
             if (sequenceDelta >= 0 && sequenceDelta < MAX_DROPOUT) {
                 if (sequenceDelta == 0) {
@@ -82,9 +82,9 @@ import java.util.TreeSet;
 
     @Override
     public synchronized void offer(RtpPacket packet) {
-        int sequence = packet.sequenceNumber();
+        int sequence = packet.getSequenceNumber();
 
-        calculateJitter(packet.timestamp());
+        calculateJitter(packet.getTimestamp());
 
         if (!isStarted) {
             stats.baseSequence = sequence;
@@ -150,11 +150,11 @@ import java.util.TreeSet;
             RtpPriorityPacket higher = iteratorSamples.next();
             RtpPacket expected = higher.packet();
 
-            int sequenceDelta = ((packet.sequenceNumber() + 1) % RTP_SEQ_MOD) -
-                expected.sequenceNumber();
+            int sequenceDelta = ((packet.getSequenceNumber() + 1) % RTP_SEQ_MOD) -
+                expected.getSequenceNumber();
 
             if (sequenceDelta == 0) {
-                stats.baseSequence = packet.sequenceNumber();
+                stats.baseSequence = packet.getSequenceNumber();
                 lastSequence = stats.baseSequence;
                 packets.pollFirst();
                 return packet;
@@ -177,15 +177,15 @@ import java.util.TreeSet;
             if (nowTimestamp >= deadlineTimestamp) {
                 packets.pollFirst();
                 // Discontinuity detection
-                int deltaSequence = packet.sequenceNumber() - ((stats.baseSequence + 1) % RTP_SEQ_MOD);
+                int deltaSequence = packet.getSequenceNumber() - ((stats.baseSequence + 1) % RTP_SEQ_MOD);
                 if (deltaSequence != 0 && deltaSequence >= 0x8000) {
                     // Trash too late packets
-                    stats.baseSequence = expected.sequenceNumber();
+                    stats.baseSequence = expected.getSequenceNumber();
                     lastSequence = stats.baseSequence;
                     return null;
                 }
 
-                stats.baseSequence = packet.sequenceNumber();
+                stats.baseSequence = packet.getSequenceNumber();
                 lastSequence = stats.baseSequence;
                 return packet;
             }

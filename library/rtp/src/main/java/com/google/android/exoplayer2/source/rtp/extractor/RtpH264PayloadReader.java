@@ -30,7 +30,6 @@ import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.ParsableNalUnitBitArray;
 import com.google.android.exoplayer2.util.TrackIdGenerator;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -89,7 +88,7 @@ import java.util.List;
         this.allowNonIdrKeyframes = allowNonIdrKeyframes;
         this.detectAccessUnits = detectAccessUnits;
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
 
         fragments = new FragmentedNalUnit();
         nalLength = new ParsableByteArray(2);
@@ -121,10 +120,10 @@ import java.util.List;
         List<byte[]> codecSpecificData = payloadFormat.buildCodecSpecificData();
 
         if (codecSpecificData != null) {
-            format = Format.createVideoSampleFormat(formatId, payloadFormat.sampleMimeType(),
-                    payloadFormat.codecs(), payloadFormat.bitrate(), Format.NO_VALUE,
-                    payloadFormat.width(), payloadFormat.height(), payloadFormat.framerate(),
-                    codecSpecificData, Format.NO_VALUE, payloadFormat.pixelWidthAspectRatio(),null);
+            format = Format.createVideoSampleFormat(formatId, payloadFormat.getSampleMimeType(),
+                    payloadFormat.getCodecs(), payloadFormat.getBitrate(), Format.NO_VALUE,
+                    payloadFormat.getWidth(), payloadFormat.getHeight(), payloadFormat.getFramerate(),
+                    codecSpecificData, Format.NO_VALUE, payloadFormat.getPixelWidthAspectRatio(),null);
 
             hasOutputFormat = true;
             output.format(format);

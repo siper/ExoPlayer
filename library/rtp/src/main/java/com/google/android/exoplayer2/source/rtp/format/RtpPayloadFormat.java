@@ -21,7 +21,6 @@ import androidx.annotation.StringDef;
 
 import com.google.android.exoplayer2.util.MimeTypes;
 
-import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
@@ -88,19 +87,19 @@ public abstract class RtpPayloadFormat {
         buildCodecProfileLevel();
     }
 
-    public @MediaType int type() { return type; }
+    public @MediaType int getType() { return type; }
 
-    public long payload() { return payload; }
+    public long getPayload() { return payload; }
 
-    public @MediaCodec String encoding() { return encoding; }
+    public @MediaCodec String getEncoding() { return encoding; }
 
-    public int clockrate() { return clockrate; }
+    public int getClockrate() { return clockrate; }
 
-    public int bitrate() { return bitrate; }
+    public int getBitrate() { return bitrate; }
 
-    public String sampleMimeType() { return sampleMimeType; }
+    public String getSampleMimeType() { return sampleMimeType; }
 
-    public FormatSpecificParameters parameters() { return parameters; }
+    public FormatSpecificParameters getParameters() { return parameters; }
 
     private void buildCodecData(@MediaCodec String encoding) {
         switch (payload) {
@@ -145,7 +144,7 @@ public abstract class RtpPayloadFormat {
             case 14:
                 this.encoding = MPA;
                 clockrate = 90000;
-                if (((RtpAudioPayload)this).channels() == 0) {
+                if (((RtpAudioPayload)this).getChannels() == 0) {
                     ((RtpAudioPayload)this).setChannels(1);
                 }
                 break;
@@ -297,28 +296,28 @@ public abstract class RtpPayloadFormat {
             this.type = type;
         }
 
-        public final Builder bitrate(int bitrate) {
+        public final Builder setBitrate(int bitrate) {
             if (bitrate <= 0) throw new NullPointerException("bitrate is invalid");
 
             this.bitrate = bitrate;
             return this;
         }
 
-        public final Builder payload(int payload) {
+        public final Builder setPayload(int payload) {
             if ((payload < 0) || (payload > 127) ) throw new NullPointerException("payload is out of range");
 
             this.payload = payload;
             return this;
         }
 
-        public final Builder encoding(@MediaCodec String encoding) {
+        public final Builder setEncoding(@MediaCodec String encoding) {
             if (encoding == null) throw new NullPointerException("encoding is null");
 
             this.encoding = encoding;
             return this;
         }
 
-        public final Builder clockrate(int clockrate) {
+        public final Builder setClockrate(int clockrate) {
             if (clockrate < 0) throw new NullPointerException("clockrate is negative");
 
             this.clockrate = clockrate;

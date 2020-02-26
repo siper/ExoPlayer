@@ -56,7 +56,7 @@ import java.util.Arrays;
     public RtpAc3PayloadReader(RtpAudioPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
 
         fragmentedAc3Frame = new FragmentedAc3Frame();
         headerScratchBits = new ParsableBitArray();
@@ -78,8 +78,8 @@ import java.util.Arrays;
         output = extractorOutput.track(trackIdGenerator.getTrackId(), C.TRACK_TYPE_AUDIO);
 
         Format format = Format.createAudioSampleFormat(trackIdGenerator.getFormatId(),
-                payloadFormat.sampleMimeType(), payloadFormat.codecs(), payloadFormat.bitrate(),
-                Format.NO_VALUE, payloadFormat.channels(), payloadFormat.clockrate(),
+                payloadFormat.getSampleMimeType(), payloadFormat.getCodecs(), payloadFormat.getBitrate(),
+                Format.NO_VALUE, payloadFormat.getChannels(), payloadFormat.getClockrate(),
                 payloadFormat.buildCodecSpecificData(), null, 0, null);
 
         output.format(format);

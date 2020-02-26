@@ -69,15 +69,15 @@ import java.util.List;
     public RtpAacPayloadReader(RtpAudioPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
-        FormatSpecificParameters formatSpecificParameters = payloadFormat.parameters();
+        FormatSpecificParameters formatSpecificParameters = payloadFormat.getParameters();
 
-        String aacMode = formatSpecificParameters.value(FormatSpecificParameter.MODE);
+        String aacMode = formatSpecificParameters.getValue(FormatSpecificParameter.MODE);
         int mode = aacMode.equalsIgnoreCase("AAC-lbr") ? MODE_LBR : MODE_HBR;
 
         numBitsAuSize = NUM_BITS_AU_SIZES[mode];
         numBitsAuIndex = NUM_BITS_AU_INDEX[mode];
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
 
         headerScratchBits = new ParsableBitArray();
         headerScratchBytes = new ParsableByteArray();
@@ -102,8 +102,8 @@ import java.util.List;
         List<byte[]> codecSpecificData = payloadFormat.buildCodecSpecificData();
 
         Format format = Format.createAudioSampleFormat(trackIdGenerator.getFormatId(),
-                payloadFormat.sampleMimeType(), payloadFormat.codecs(), payloadFormat.bitrate(),
-                Format.NO_VALUE, payloadFormat.channels(), payloadFormat.clockrate(),
+                payloadFormat.getSampleMimeType(), payloadFormat.getCodecs(), payloadFormat.getBitrate(),
+                Format.NO_VALUE, payloadFormat.getChannels(), payloadFormat.getClockrate(),
                 codecSpecificData, null, 0, null);
 
         output.format(format);
@@ -191,7 +191,7 @@ import java.util.List;
             output.sampleMetadata(sampleTimeStampUs, C.BUFFER_FLAG_KEY_FRAME, auHeader.size(),
                     0, null);
 
-            sampleTimeStampUs += C.MICROS_PER_SECOND * auHeaders.size() / payloadFormat.clockrate();
+            sampleTimeStampUs += C.MICROS_PER_SECOND * auHeaders.size() / payloadFormat.getClockrate();
         }
     }
 

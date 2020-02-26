@@ -38,7 +38,7 @@ package com.google.android.exoplayer2.source.rtp.rtcp;
 public final class RtcpSdesPacket extends RtcpPacket {
     private final RtcpChunk[] chunks;
 
-    RtcpSdesPacket(Builder builder) {
+    private RtcpSdesPacket(Builder builder) {
         super(builder);
         chunks = builder.chunks;
     }

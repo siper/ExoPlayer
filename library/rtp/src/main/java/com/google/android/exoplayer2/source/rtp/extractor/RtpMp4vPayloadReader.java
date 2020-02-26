@@ -45,7 +45,7 @@ import java.util.List;
     public RtpMp4vPayloadReader(RtpVideoPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
     }
 
     @Override
@@ -66,12 +66,12 @@ import java.util.List;
         List<byte[]> codecSpecificData = payloadFormat.buildCodecSpecificData();
 
         if (codecSpecificData != null) {
-            Format format = Format.createVideoSampleFormat(formatId, payloadFormat.sampleMimeType(),
-                    payloadFormat.codecs(), payloadFormat.bitrate(), Format.NO_VALUE,
-                    payloadFormat.width() > 0 ? payloadFormat.width() : Format.NO_VALUE,
-                    payloadFormat.height() > 0 ? payloadFormat.height() : Format.NO_VALUE,
-                    payloadFormat.framerate(), codecSpecificData, Format.NO_VALUE,
-                    payloadFormat.pixelWidthAspectRatio(),null);
+            Format format = Format.createVideoSampleFormat(formatId, payloadFormat.getSampleMimeType(),
+                    payloadFormat.getCodecs(), payloadFormat.getBitrate(), Format.NO_VALUE,
+                    payloadFormat.getWidth() > 0 ? payloadFormat.getWidth() : Format.NO_VALUE,
+                    payloadFormat.getHeight() > 0 ? payloadFormat.getHeight() : Format.NO_VALUE,
+                    payloadFormat.getFramerate(), codecSpecificData, Format.NO_VALUE,
+                    payloadFormat.getPixelWidthAspectRatio(),null);
 
             output.format(format);
         }

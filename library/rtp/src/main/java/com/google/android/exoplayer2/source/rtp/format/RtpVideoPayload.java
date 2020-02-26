@@ -38,7 +38,7 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
     private float pixelWidthAspectRatio;
     private List<byte[]> codecSpecificData = null;
 
-    RtpVideoPayload(Builder builder) {
+    private RtpVideoPayload(Builder builder) {
         super(builder);
 
         this.width = builder.width;
@@ -49,17 +49,17 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
         pixelWidthAspectRatio = 1.0f;
     }
 
-    public int width() { return width; }
+    public int getWidth() { return width; }
 
-    public int height() { return height; }
+    public int getHeight() { return height; }
 
-    public float framerate() { return framerate; }
+    public float getFramerate() { return framerate; }
 
-    public int quality() { return quality; }
+    public int getQuality() { return quality; }
 
-    public String codecs() { return codecs; }
+    public String getCodecs() { return codecs; }
 
-    public float pixelWidthAspectRatio() { return pixelWidthAspectRatio; }
+    public float getPixelWidthAspectRatio() { return pixelWidthAspectRatio; }
 
     @Override
     public void buildCodecProfileLevel() {
@@ -73,11 +73,11 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
                 //  7a:  High 4:2:2
                 //  f4:  High 4:4:4
                 //  2c:  CAVLC 4:4:4
-                codecs = "avc1." + parameters.value(FormatSpecificParameter.PROFILE_LEVEL_ID);
+                codecs = "avc1." + parameters.getValue(FormatSpecificParameter.PROFILE_LEVEL_ID);
             }
         } else if (MimeTypes.VIDEO_MP4V.equals(sampleMimeType)) {
             if (parameters.contains(FormatSpecificParameter.PROFILE_LEVEL_ID)) {
-                codecs = "mp4v.20." + parameters.value(FormatSpecificParameter.PROFILE_LEVEL_ID);
+                codecs = "mp4v.20." + parameters.getValue(FormatSpecificParameter.PROFILE_LEVEL_ID);
 
             } else {
                 codecs = "mp4v.20.1";
@@ -93,7 +93,7 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
             if (MimeTypes.VIDEO_H264.equals(sampleMimeType)) {
                 if (parameters.contains(FormatSpecificParameter.SPROP_PARAMETER_SETS)) {
 
-                    String spropParamSets = parameters.value(
+                    String spropParamSets = parameters.getValue(
                             FormatSpecificParameter.SPROP_PARAMETER_SETS);
                     if (spropParamSets != null && spropParamSets.length() > 0) {
                         codecSpecificData = CodecSpecificDataUtil.
@@ -119,9 +119,9 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
                 }
 
             } else if (MimeTypes.VIDEO_H265.equals(sampleMimeType)) {
-                String vps = parameters.value(FormatSpecificParameter.SPROP_VPS);
-                String sps = parameters.value(FormatSpecificParameter.SPROP_SPS);
-                String pps = parameters.value(FormatSpecificParameter.SPROP_PPS);
+                String vps = parameters.getValue(FormatSpecificParameter.SPROP_VPS);
+                String sps = parameters.getValue(FormatSpecificParameter.SPROP_SPS);
+                String pps = parameters.getValue(FormatSpecificParameter.SPROP_PPS);
 
                 if (vps != null && sps != null && pps != null) {
                     codecSpecificData = CodecSpecificDataUtil.buildH265SpecificConfig(vps, sps, pps);
@@ -145,7 +145,7 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
                 }
 
             } else if (MimeTypes.VIDEO_MP4V.equals(sampleMimeType)) {
-                String config = parameters.value(FormatSpecificParameter.CONFIG);
+                String config = parameters.getValue(FormatSpecificParameter.CONFIG);
                 if (config != null) {
 
                     try {
@@ -163,7 +163,7 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
                         }
 
                     } catch (IllegalArgumentException | ParserException ex) {
-
+                        // Do nothing
                     }
                 }
             }
@@ -185,22 +185,22 @@ public final class RtpVideoPayload extends RtpPayloadFormat {
             framerate = Format.NO_VALUE;
         }
 
-        public Builder width(int width) {
+        public Builder getWidth(int width) {
             this.width = width;
             return this;
         }
 
-        public Builder height(int height) {
+        public Builder getHeight(int height) {
             this.height = height;
             return this;
         }
 
-        public Builder framerate(float framerate) {
+        public Builder getFramerate(float framerate) {
             this.framerate = framerate;
             return this;
         }
 
-        public Builder quality(int quality) {
+        public Builder getQuality(int quality) {
             this.quality = quality;
             return this;
         }

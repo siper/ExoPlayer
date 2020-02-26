@@ -71,11 +71,11 @@ import java.lang.annotation.RetentionPolicy;
     public RtpG711PayloadReader(RtpAudioPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
-        this.version = (RtpAudioPayload.PCMA.equals(payloadFormat.encoding()) ||
-                RtpAudioPayload.PCMU.equals(payloadFormat.encoding())) ?
+        this.version = (RtpAudioPayload.PCMA.equals(payloadFormat.getEncoding()) ||
+                RtpAudioPayload.PCMU.equals(payloadFormat.getEncoding())) ?
                 G711_VERSION_0 : G711_VERSION_1;
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
     }
 
     @Override
@@ -92,8 +92,8 @@ import java.lang.annotation.RetentionPolicy;
         output = extractorOutput.track(trackIdGenerator.getTrackId(), C.TRACK_TYPE_AUDIO);
 
         Format format = Format.createAudioSampleFormat(trackIdGenerator.getFormatId(),
-                payloadFormat.sampleMimeType(), payloadFormat.codecs(), payloadFormat.bitrate(),
-                Format.NO_VALUE, payloadFormat.channels(), payloadFormat.clockrate(),
+                payloadFormat.getSampleMimeType(), payloadFormat.getCodecs(), payloadFormat.getBitrate(),
+                Format.NO_VALUE, payloadFormat.getChannels(), payloadFormat.getClockrate(),
                 payloadFormat.buildCodecSpecificData(), null, 0, null);
 
         output.format(format);

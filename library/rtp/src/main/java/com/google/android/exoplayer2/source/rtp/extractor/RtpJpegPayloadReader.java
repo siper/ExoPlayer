@@ -171,7 +171,7 @@ import java.util.Arrays;
 
         fragmentedJpegFrame = new FragmentedJpegFrame();
         jpegReader = new JpegHeaderReader(payloadFormat, fragmentedJpegFrame);
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
     }
 
     @Override
@@ -188,10 +188,10 @@ import java.util.Arrays;
         output = extractorOutput.track(trackIdGenerator.getTrackId(), C.TRACK_TYPE_VIDEO);
         formatId = trackIdGenerator.getFormatId();
 
-        if (payloadFormat.width() > 0 && payloadFormat.height() > 0) {
+        if (payloadFormat.getWidth() > 0 && payloadFormat.getHeight() > 0) {
             format = Format.createVideoSampleFormat(formatId,
-                    payloadFormat.sampleMimeType(), payloadFormat.codecs(), payloadFormat.bitrate(),
-                    Format.NO_VALUE, Format.NO_VALUE, Format.NO_VALUE, payloadFormat.framerate(),
+                    payloadFormat.getSampleMimeType(), payloadFormat.getCodecs(), payloadFormat.getBitrate(),
+                    Format.NO_VALUE, Format.NO_VALUE, Format.NO_VALUE, payloadFormat.getFramerate(),
                     payloadFormat.buildCodecSpecificData(), null);
 
             hasOutputFormat = true;
@@ -218,9 +218,9 @@ import java.util.Arrays;
 
                 if (!hasOutputFormat && jpegReader.isHasOutputFormat()) {
                     format = Format.createVideoSampleFormat(formatId,
-                            payloadFormat.sampleMimeType(), payloadFormat.codecs(),
-                            payloadFormat.bitrate(), Format.NO_VALUE, jpegReader.getWidth(),
-                            jpegReader.getHeight(), payloadFormat.framerate(),
+                            payloadFormat.getSampleMimeType(), payloadFormat.getCodecs(),
+                            payloadFormat.getBitrate(), Format.NO_VALUE, jpegReader.getWidth(),
+                            jpegReader.getHeight(), payloadFormat.getFramerate(),
                             payloadFormat.buildCodecSpecificData(), null);
 
                     hasOutputFormat = true;
@@ -270,8 +270,8 @@ import java.util.Arrays;
             this.payloadFormat = payloadFormat;
             this.fragmentedJpegFrame = fragmentedJpegFrame;
 
-            if (payloadFormat.width() != Format.NO_VALUE ||
-                    payloadFormat.height() != Format.NO_VALUE) {
+            if (payloadFormat.getWidth() != Format.NO_VALUE ||
+                    payloadFormat.getHeight() != Format.NO_VALUE) {
                 hasOutputFormat = true;
             }
 
@@ -310,11 +310,11 @@ import java.util.Arrays;
             height = payload.readUnsignedByte() * 8;
 
             if (width <= 0) {
-                width = payloadFormat.width();
+                width = payloadFormat.getWidth();
             }
 
             if (height <= 0) {
-                height = payloadFormat.height();
+                height = payloadFormat.getHeight();
             }
 
             if (width == Format.NO_VALUE || height == Format.NO_VALUE) {

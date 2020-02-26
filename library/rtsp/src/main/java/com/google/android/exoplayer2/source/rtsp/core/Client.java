@@ -525,7 +525,7 @@ public abstract class Client implements Dispatcher.EventListener {
                                             new RtpVideoPayload.Builder();
 
                                     if (isNumeric(media.getFmt())) {
-                                        payloadBuilder.payload(Integer.parseInt(media.getFmt()));
+                                        payloadBuilder.setPayload(Integer.parseInt(media.getFmt()));
                                     }
                                 }
 
@@ -534,7 +534,7 @@ public abstract class Client implements Dispatcher.EventListener {
                                 Bandwidth bandwidth = mediaDescription.getBandwidth();
                                 if (bandwidth != null && Bandwidth.AS.equals(bandwidth.getType())) {
                                     formatBuilder.bitrate(bandwidth.getWidth());
-                                    payloadBuilder.bitrate(bandwidth.getWidth());
+                                    payloadBuilder.setBitrate(bandwidth.getWidth());
                                 }
 
                                 for (Attribute attribute : mediaDescription.getAttributes()) {
@@ -588,11 +588,11 @@ public abstract class Client implements Dispatcher.EventListener {
                                                 @RtpPayloadFormat.MediaCodec String encoding =
                                                         matcher.group(1).toUpperCase();
 
-                                                payloadBuilder.encoding(encoding);
+                                                payloadBuilder.setEncoding(encoding);
 
                                                 if (matcher.group(2) != null) {
                                                     if (isNumeric(matcher.group(2))) {
-                                                        payloadBuilder.clockrate(
+                                                        payloadBuilder.setClockrate(
                                                                 Integer.parseInt(matcher.group(2)));
                                                     }
                                                 }
@@ -600,7 +600,7 @@ public abstract class Client implements Dispatcher.EventListener {
                                                 if (matcher.group(3) != null) {
                                                     if (isNumeric(matcher.group(4))) {
                                                         ((RtpAudioPayload.Builder) payloadBuilder).
-                                                                channels(Integer.parseInt(matcher.group(4)));
+                                                            setChannels(Integer.parseInt(matcher.group(4)));
                                                     }
                                                 }
                                             }
@@ -617,7 +617,7 @@ public abstract class Client implements Dispatcher.EventListener {
                                             }
                                         } else if (Attribute.FRAMERATE.equalsIgnoreCase(attrName)) {
                                             if (isNumeric(attrValue)) {
-                                                ((RtpVideoPayload.Builder) payloadBuilder).framerate(
+                                                ((RtpVideoPayload.Builder) payloadBuilder).getFramerate(
                                                         Float.parseFloat(attrValue));
                                             }
 
@@ -626,16 +626,16 @@ public abstract class Client implements Dispatcher.EventListener {
                                             if (matcher.find()) {
                                                 if (isNumeric(matcher.group(2)) &&
                                                         isNumeric(matcher.group(3))) {
-                                                    ((RtpVideoPayload.Builder) payloadBuilder).width(
+                                                    ((RtpVideoPayload.Builder) payloadBuilder).getWidth(
                                                             Integer.parseInt(matcher.group(2)));
 
-                                                    ((RtpVideoPayload.Builder) payloadBuilder).height(
+                                                    ((RtpVideoPayload.Builder) payloadBuilder).getHeight(
                                                             Integer.parseInt(matcher.group(3)));
                                                 }
                                             }
                                         } else if (Attribute.X_FRAMERATE.equalsIgnoreCase(attrName)) {
                                             if (isNumeric(attrValue)) {
-                                                ((RtpVideoPayload.Builder) payloadBuilder).framerate(
+                                                ((RtpVideoPayload.Builder) payloadBuilder).getFramerate(
                                                         Float.parseFloat(attrValue));
                                             }
 
@@ -644,10 +644,10 @@ public abstract class Client implements Dispatcher.EventListener {
                                             if (matcher.find()) {
                                                 if (isNumeric(matcher.group(2)) &&
                                                         isNumeric(matcher.group(3))) {
-                                                    ((RtpVideoPayload.Builder) payloadBuilder).width(
+                                                    ((RtpVideoPayload.Builder) payloadBuilder).getWidth(
                                                             Integer.parseInt(matcher.group(2)));
 
-                                                    ((RtpVideoPayload.Builder) payloadBuilder).height(
+                                                    ((RtpVideoPayload.Builder) payloadBuilder).getHeight(
                                                             Integer.parseInt(matcher.group(3)));
                                                 }
                                             }
@@ -655,19 +655,19 @@ public abstract class Client implements Dispatcher.EventListener {
                                         } else if (Attribute.PTIME.equalsIgnoreCase(attrName)) {
                                             if (isNumeric(attrValue)) {
                                                 ((RtpAudioPayload.Builder) payloadBuilder).
-                                                        ptime(Long.parseLong(attrValue));
+                                                    setPtime(Long.parseLong(attrValue));
                                             }
 
                                         } else if (Attribute.MAXPTIME.equalsIgnoreCase(attrName)) {
                                             if (isNumeric(attrValue)) {
                                                 ((RtpAudioPayload.Builder) payloadBuilder).
-                                                        maxptime(Long.parseLong(attrValue));
+                                                    setMaxPtime(Long.parseLong(attrValue));
                                             }
 
                                         } else if (Attribute.QUALITY.equalsIgnoreCase(attrName)) {
                                             if (isNumeric(attrValue)) {
                                                 ((RtpVideoPayload.Builder) payloadBuilder).
-                                                        quality(Integer.parseInt(attrValue));
+                                                    getQuality(Integer.parseInt(attrValue));
                                             }
                                         }
                                     }

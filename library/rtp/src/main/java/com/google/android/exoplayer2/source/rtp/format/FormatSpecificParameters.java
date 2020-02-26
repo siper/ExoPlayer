@@ -46,7 +46,7 @@ public class FormatSpecificParameters {
      * @return The {@code FormatSpecificParameter} given by parameter name.
      */
     @Nullable
-    public String value(String parameter) {
+    public String getValue(String parameter) {
         if (parameters.containsKey(parameter)) {
             return parameters.get(parameter).getValue();
         }

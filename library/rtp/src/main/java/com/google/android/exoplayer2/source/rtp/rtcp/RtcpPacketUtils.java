@@ -134,8 +134,7 @@ import java.util.Arrays;
 
     /** Byte swap */
 
-    public static synchronized byte[] swapBytes(byte[] bdata)
-    {
+    public static synchronized byte[] swapBytes(byte[] bdata) {
         byte[] buff = new byte [ bdata.length ];
         for ( int i=bdata.length-1; i>=0; i--) {
             buff [ i ] = bdata[(bdata.length -1) - i ];

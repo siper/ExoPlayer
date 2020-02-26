@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
     @Override
     public synchronized void offer(RtpPacket packet) {
-        int sequence = packet.sequenceNumber();
+        int sequence = packet.getSequenceNumber();
 
-        calculateJitter(packet.timestamp());
+        calculateJitter(packet.getTimestamp());
 
         if (!isStarted) {
             stats.maxSequence = sequence - 1;
@@ -44,9 +44,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
     @Override
     public synchronized RtpPacket pop() {
-        if (packets.size() > 1) {
+        if (packets.size() > 0) {
             RtpPacket packet = packets.poll();
-            stats.baseSequence = packet.sequenceNumber();
+            stats.baseSequence = packet.getSequenceNumber();
             return packet;
         }
 

@@ -43,7 +43,7 @@ public class RtcpSenderInfo {
     private final long ntpTimestampMsw;
     private final long ntpTimestampLsw;
 
-    RtcpSenderInfo(Builder builder) {
+    private RtcpSenderInfo(Builder builder) {
         packetCount = builder.packetCount;
         octetCount = builder.octetCount;
         rtpTimestamp = builder.rtpTimestamp;

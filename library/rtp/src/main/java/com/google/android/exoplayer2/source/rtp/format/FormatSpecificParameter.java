@@ -116,11 +116,11 @@ public class FormatSpecificParameter {
     private String name;
     private String value;
 
-    FormatSpecificParameter(String name) {
+    private FormatSpecificParameter(String name) {
         this.name = name;
     }
 
-    FormatSpecificParameter(String name, String value) {
+    private FormatSpecificParameter(String name, String value) {
         this.name = name;
         this.value = value;
     }

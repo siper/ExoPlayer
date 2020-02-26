@@ -24,7 +24,7 @@ import java.util.Arrays;
 public class RtcpCompoundPacket extends RtcpPacket  {
     private RtcpPacket packets[];
 
-    RtcpCompoundPacket(Builder builder) {
+    private RtcpCompoundPacket(Builder builder) {
         super(builder);
         packets = builder.packets;
     }

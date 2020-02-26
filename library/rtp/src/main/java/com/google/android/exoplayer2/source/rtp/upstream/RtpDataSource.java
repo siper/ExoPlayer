@@ -113,7 +113,7 @@ public final class RtpDataSource extends UdpDataSinkSource  {
 
                     if (isSet(FLAG_ENABLE_RTCP_FEEDBACK)) {
                         if (statsFeedback.getRemoteSsrc() == Long.MIN_VALUE) {
-                            statsFeedback.setRemoteSsrc(packet.ssrc());
+                            statsFeedback.setRemoteSsrc(packet.getSsrc());
                         }
 
                         statistics.update(samplesQueue.getStats());

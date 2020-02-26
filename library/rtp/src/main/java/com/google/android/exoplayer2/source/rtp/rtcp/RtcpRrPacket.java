@@ -48,7 +48,7 @@ public final class RtcpRrPacket extends RtcpPacket {
     private final long ssrc;
     private final RtcpReportBlock[] reportBlocks;
 
-    RtcpRrPacket(Builder builder) {
+    private RtcpRrPacket(Builder builder) {
         super(builder);
         ssrc = builder.ssrc;
         reportBlocks = builder.reportBlocks;

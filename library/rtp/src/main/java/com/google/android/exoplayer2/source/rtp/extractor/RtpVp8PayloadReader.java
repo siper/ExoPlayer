@@ -48,7 +48,7 @@ import java.util.Arrays;
     public RtpVp8PayloadReader(RtpVideoPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
 
         descriptorReader = new DescriptorReader();
         fragmentedVp8Frame = new FragmentedVp8Frame();
@@ -70,13 +70,13 @@ import java.util.Arrays;
 
         output = extractorOutput.track(trackId, C.TRACK_TYPE_VIDEO);
 
-        if (payloadFormat.width() > 0 && payloadFormat.height() > 0) {
-            Format format = Format.createVideoSampleFormat(formatId, payloadFormat.sampleMimeType(),
-                    payloadFormat.codecs(), payloadFormat.bitrate(), Format.NO_VALUE,
-                    payloadFormat.width() > 0 ? payloadFormat.width() : Format.NO_VALUE,
-                    payloadFormat.height() > 0 ? payloadFormat.height() : Format.NO_VALUE,
-                    payloadFormat.framerate(), null, Format.NO_VALUE,
-                    payloadFormat.pixelWidthAspectRatio(),null);
+        if (payloadFormat.getWidth() > 0 && payloadFormat.getHeight() > 0) {
+            Format format = Format.createVideoSampleFormat(formatId, payloadFormat.getSampleMimeType(),
+                    payloadFormat.getCodecs(), payloadFormat.getBitrate(), Format.NO_VALUE,
+                    payloadFormat.getWidth() > 0 ? payloadFormat.getWidth() : Format.NO_VALUE,
+                    payloadFormat.getHeight() > 0 ? payloadFormat.getHeight() : Format.NO_VALUE,
+                    payloadFormat.getFramerate(), null, Format.NO_VALUE,
+                    payloadFormat.getPixelWidthAspectRatio(),null);
 
             hasOutputFormat = true;
             output.format(format);
@@ -127,10 +127,10 @@ import java.util.Arrays;
                         int width = header.readLittleEndianUnsignedShort() & 0x3fff;
                         int height = header.readLittleEndianUnsignedShort() & 0x3fff;
 
-                        Format format = Format.createVideoSampleFormat(formatId, payloadFormat.sampleMimeType(),
-                                payloadFormat.codecs(), payloadFormat.bitrate(), Format.NO_VALUE,
-                                width, height, payloadFormat.framerate(), null, Format.NO_VALUE,
-                                payloadFormat.pixelWidthAspectRatio(), null);
+                        Format format = Format.createVideoSampleFormat(formatId, payloadFormat.getSampleMimeType(),
+                                payloadFormat.getCodecs(), payloadFormat.getBitrate(), Format.NO_VALUE,
+                                width, height, payloadFormat.getFramerate(), null, Format.NO_VALUE,
+                                payloadFormat.getPixelWidthAspectRatio(), null);
 
                         hasOutputFormat = true;
                         output.format(format);

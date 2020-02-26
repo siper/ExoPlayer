@@ -817,7 +817,7 @@ public final class RtspSampleStreamWrapper implements
 
                     extractorInput = new RtpExtractorInput(dataSource);
 
-                    if (MimeTypes.VIDEO_MP2T.equals(format.format().sampleMimeType())) {
+                    if (MimeTypes.VIDEO_MP2T.equals(format.format().getSampleMimeType())) {
                         extractor = new RtpMp2tExtractor(FLAG_ALLOW_NON_IDR_KEYFRAMES);
                     } else {
                         extractor = new DefaultRtpExtractor(format.format(), trackIdGenerator);
@@ -983,8 +983,8 @@ public final class RtspSampleStreamWrapper implements
                 }
 
                 RtpQueue samplesQueue = (delayMs > 0) ?
-                    RtpQueue.createPriorityQueue(payloadFormat.clockrate(), delayMs) :
-                    RtpQueue.createSimpleQueue(payloadFormat.clockrate());
+                    RtpQueue.createPriorityQueue(payloadFormat.getClockrate(), delayMs) :
+                    RtpQueue.createSimpleQueue(payloadFormat.getClockrate());
                 dataSource = new RtpDataSource(samplesQueue, flags, bufferSize);
 
             } else {
@@ -1066,7 +1066,7 @@ public final class RtspSampleStreamWrapper implements
 
             if (Transport.RTP_PROTOCOL.equals(transport.getTransportProtocol())) {
                 RtpPayloadFormat payloadFormat = format.format();
-                samplesQueue = RtpQueue.createSimpleQueue(payloadFormat.clockrate());
+                samplesQueue = RtpQueue.createSimpleQueue(payloadFormat.getClockrate());
 
                 if (session.isRtcpSupported()) {
                     inReportDispatcher.open();

@@ -88,14 +88,14 @@ import java.util.List;
     public RtpH265PayloadReader(RtpVideoPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
 
-        FormatSpecificParameters parameters = payloadFormat.parameters();
+        FormatSpecificParameters parameters = payloadFormat.getParameters();
         if (parameters.contains(FormatSpecificParameter.TX_MODE)) {
-            hasDonlPresent = ("MST".equals(parameters.value(FormatSpecificParameter.TX_MODE)));
+            hasDonlPresent = ("MST".equals(parameters.getValue(FormatSpecificParameter.TX_MODE)));
         }
 
-        String maxDonDiff = parameters.value(FormatSpecificParameter.SPROP_MAX_DON_DIFF);
+        String maxDonDiff = parameters.getValue(FormatSpecificParameter.SPROP_MAX_DON_DIFF);
         if (maxDonDiff != null) {
             hasDonlPresent |= Integer.parseInt(maxDonDiff) > 0;
         }
@@ -123,15 +123,15 @@ import java.util.List;
         String formatId = trackIdGenerator.getFormatId();
 
         output = extractorOutput.track(trackId, C.TRACK_TYPE_VIDEO);
-        sampleReader = new SampleReader(payloadFormat.codecs(), formatId, output, timestampAdjuster);
+        sampleReader = new SampleReader(payloadFormat.getCodecs(), formatId, output, timestampAdjuster);
 
         List<byte[]> codecSpecificData = payloadFormat.buildCodecSpecificData();
 
         if (codecSpecificData != null) {
-            Format format = Format.createVideoSampleFormat(formatId, payloadFormat.sampleMimeType(),
-                payloadFormat.codecs(), payloadFormat.bitrate(), Format.NO_VALUE,
-                payloadFormat.width() , payloadFormat.height(), payloadFormat.framerate(),
-                codecSpecificData, Format.NO_VALUE, payloadFormat.pixelWidthAspectRatio(),null);
+            Format format = Format.createVideoSampleFormat(formatId, payloadFormat.getSampleMimeType(),
+                payloadFormat.getCodecs(), payloadFormat.getBitrate(), Format.NO_VALUE,
+                payloadFormat.getWidth() , payloadFormat.getHeight(), payloadFormat.getFramerate(),
+                codecSpecificData, Format.NO_VALUE, payloadFormat.getPixelWidthAspectRatio(),null);
 
             hasOutputFormat = true;
             output.format(format);

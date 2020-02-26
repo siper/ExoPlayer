@@ -43,7 +43,7 @@ public class RtcpSdesItem {
     private final @ItemType int type;
     private final byte[] value;
 
-    RtcpSdesItem(Builder builder) {
+    private RtcpSdesItem(Builder builder) {
         this.type = builder.type;
         this.value = builder.value;
     }

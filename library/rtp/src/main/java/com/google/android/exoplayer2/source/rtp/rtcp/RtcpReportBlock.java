@@ -87,7 +87,7 @@ public final class RtcpReportBlock {
     private long delaySinceLastSenderReport;
 
 
-    RtcpReportBlock(Builder builder) {
+    private RtcpReportBlock(Builder builder) {
         this.ssrc = builder.ssrc;
         this.fractionLost = builder.fractionLost;
         this.cumulativeNumberOfPacketsLost = builder.cumulativeNumberOfPacketsLost;

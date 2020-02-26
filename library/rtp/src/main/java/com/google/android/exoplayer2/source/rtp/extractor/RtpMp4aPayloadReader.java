@@ -44,7 +44,7 @@ import java.util.List;
     public RtpMp4aPayloadReader(RtpAudioPayload payloadFormat) {
         this.payloadFormat = payloadFormat;
 
-        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.clockrate());
+        timestampAdjuster = new RtpTimestampAdjuster(payloadFormat.getClockrate());
         fragmentedMp4aFrame = new FragmentedMp4aFrame();
     }
 
@@ -64,8 +64,8 @@ import java.util.List;
         List<byte[]> codecSpecificData = payloadFormat.buildCodecSpecificData();
 
         Format format = Format.createAudioSampleFormat(trackIdGenerator.getFormatId(),
-                MimeTypes.AUDIO_AAC, payloadFormat.codecs(), payloadFormat.bitrate(),
-                Format.NO_VALUE, payloadFormat.channels(), payloadFormat.clockrate(),
+                MimeTypes.AUDIO_AAC, payloadFormat.getCodecs(), payloadFormat.getBitrate(),
+                Format.NO_VALUE, payloadFormat.getChannels(), payloadFormat.getClockrate(),
                 codecSpecificData, null, 0, null);
 
         output.format(format);
@@ -93,7 +93,7 @@ import java.util.List;
             int framePos = 0;
             int sampleOffset = 0;
 
-            for (int subFrame=0; subFrame <= payloadFormat.numSubFrames(); subFrame++) {
+            for (int subFrame=0; subFrame <= payloadFormat.getNumSubFrames(); subFrame++) {
                 int sampleLength = 0;
 
                 /* each subframe starts with a variable length encoding */

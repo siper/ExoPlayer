@@ -143,9 +143,9 @@ public final class MediaSession implements Player.EventListener {
         tcpChannels = new int[0];
         pendingResetPosition = C.TIME_UNSET;
 
-        new Handler(Looper.getMainLooper()).post(() -> {
-            client.getPlayer().addListener(MediaSession.this);
-        });
+        new Handler(Looper.getMainLooper()).post(() ->
+            client.getPlayer().addListener(MediaSession.this)
+        );
     }
 
     public Uri getUri() { return uri; }

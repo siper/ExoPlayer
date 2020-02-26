@@ -59,7 +59,7 @@ public final class RtcpSrPacket extends RtcpPacket {
     private final RtcpSenderInfo senderInfo;
     private final RtcpReportBlock[] reportBlocks;
 
-    RtcpSrPacket(Builder builder) {
+    private RtcpSrPacket(Builder builder) {
         super(builder);
 
         ssrc = builder.ssrc;

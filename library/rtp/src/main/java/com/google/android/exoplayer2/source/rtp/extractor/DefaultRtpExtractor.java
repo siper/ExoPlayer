@@ -51,7 +51,7 @@ public final class DefaultRtpExtractor implements Extractor {
 
         if (payloadReader == null) {
             throw new UnsupportedFormatException("Payload reader not found for media type=[" +
-                    payloadFormat.sampleMimeType() + "]");
+                    payloadFormat.getSampleMimeType() + "]");
         }
     }
 
@@ -82,8 +82,8 @@ public final class DefaultRtpExtractor implements Extractor {
             try {
 
                 RtpPacket packet = RtpPacket.parse(packetBuffer, bytesRead);
-                if (payloadReader.packetStarted(packet.timestamp(), packet.marker(), packet.sequenceNumber())) {
-                    byte[] payload = packet.payload();
+                if (payloadReader.packetStarted(packet.getTimestamp(), packet.getMarker(), packet.getSequenceNumber())) {
+                    byte[] payload = packet.getPayload();
                     sampleData.reset(payload, payload.length);
                     payloadReader.consume(sampleData);
                 }

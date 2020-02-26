@@ -143,7 +143,7 @@ public final class RtpBufferedDataSource extends UdpDataSource {
 
                 if (stats != null) {
                     if (statsFeedback.getRemoteSsrc() == Long.MIN_VALUE) {
-                        statsFeedback.setRemoteSsrc(packet.ssrc());
+                        statsFeedback.setRemoteSsrc(packet.getSsrc());
                     }
 
                     stats.update(samplesQueue.getStats());

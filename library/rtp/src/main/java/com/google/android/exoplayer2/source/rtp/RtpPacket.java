@@ -128,25 +128,25 @@ public final class RtpPacket {
         extLen = (extension) ? hdrExtension.length : 0;
     }
 
-    public int version() { return version; }
+    public int getVersion() { return version; }
 
-    public boolean marker() { return marker; }
+    public boolean getMarker() { return marker; }
 
     public boolean hasExtension() { return extension; }
 
-    public int payloadType() { return payloadType; }
+    public int getPayloadType() { return payloadType; }
 
-    public int sequenceNumber() { return sequenceNumber; }
+    public int getSequenceNumber() { return sequenceNumber; }
 
-    public long timestamp() { return timestamp; }
+    public long getTimestamp() { return timestamp; }
 
-    public long ssrc() { return ssrc; }
+    public long getSsrc() { return ssrc; }
 
-    public long[] csrc() { return csrc; }
+    public long[] getCsrc() { return csrc; }
 
-    public byte[] payload() { return payload; }
+    public byte[] getPayload() { return payload; }
 
-    public byte[] extension() { return hdrExtension; }
+    public byte[] getExtension() { return hdrExtension; }
 
 
     public byte[] getBytes() {

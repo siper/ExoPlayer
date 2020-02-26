@@ -29,21 +29,21 @@ public final class RtpAudioPayload extends RtpPayloadFormat {
         this.maxptime = builder.maxptime;
     }
 
-    public int channels() { return channels; }
+    public int getChannels() { return channels; }
 
     public void setChannels(int channels) { this.channels = channels; }
 
-    public long ptime() { return ptime; }
+    public long getPtime() { return ptime; }
 
-    public long maxptime() { return maxptime; }
+    public long getMaxPtime() { return maxptime; }
 
-    public String codecs() { return codecs; }
+    public String getCodecs() { return codecs; }
 
-    public int numSubFrames() { return numSubFrames; }
+    public int getNumSubFrames() { return numSubFrames; }
 
     @Override
     public void buildCodecProfileLevel() {
-        if (MimeTypes.AUDIO_AAC.equals(sampleMimeType())) {
+        if (MimeTypes.AUDIO_AAC.equals(getSampleMimeType())) {
             if (parameters.contains(FormatSpecificParameter.PROFILE_LEVEL_ID)) {
                 //     1: AAC Main
                 //     2: AAC LC (Low Complexity)
@@ -51,9 +51,9 @@ public final class RtpAudioPayload extends RtpPayloadFormat {
                 //     4: AAC LTP (Long Term Prediction)
                 //     5: SBR (Spectral Band Replication)
                 //     6: AAC Scalable
-                codecs = "mp4a.40." + parameters.value(FormatSpecificParameter.PROFILE_LEVEL_ID);
+                codecs = "mp4a.40." + parameters.getValue(FormatSpecificParameter.PROFILE_LEVEL_ID);
             }
-        } else if (MimeTypes.AUDIO_MP4.equals(sampleMimeType())) {
+        } else if (MimeTypes.AUDIO_MP4.equals(getSampleMimeType())) {
             if (parameters.contains(FormatSpecificParameter.PROFILE_LEVEL_ID)) {
                 //     1: Main Audio Profile Level 1
                 //     9: Speech Audio Profile Level 1
@@ -62,7 +62,7 @@ public final class RtpAudioPayload extends RtpPayloadFormat {
                 //    44: High Efficiency AAC Profile Level 2
                 //    48: High Efficiency AAC v2 Profile Level 2
                 //    55: Baseline MPEG Surround Profile (see ISO/IEC 23003-1) Level 3
-                codecs = "mp4a.40." + parameters.value(FormatSpecificParameter.PROFILE_LEVEL_ID);
+                codecs = "mp4a.40." + parameters.getValue(FormatSpecificParameter.PROFILE_LEVEL_ID);
 
             } else {
                 codecs = "mp4a.40.1";
@@ -73,7 +73,7 @@ public final class RtpAudioPayload extends RtpPayloadFormat {
     @Override
     public List<byte[]> buildCodecSpecificData() {
         if (codecSpecificData == null) {
-            if (MimeTypes.AUDIO_AAC.equals(sampleMimeType())) {
+            if (MimeTypes.AUDIO_AAC.equals(getSampleMimeType())) {
                 if (channels > 0 && clockrate > 0) {
                     codecSpecificData = Collections.singletonList(
                             CodecSpecificDataUtil.buildAacLcAudioSpecificConfig(clockrate,
@@ -81,7 +81,7 @@ public final class RtpAudioPayload extends RtpPayloadFormat {
                 } else {
 
                     if (parameters.contains(FormatSpecificParameter.CONFIG)) {
-                        byte[] config = parameters.value(FormatSpecificParameter.CONFIG).getBytes();
+                        byte[] config = parameters.getValue(FormatSpecificParameter.CONFIG).getBytes();
 
                         try {
                             Pair<Integer, Integer> specConfigParsed = CodecSpecificDataUtil
@@ -99,14 +99,14 @@ public final class RtpAudioPayload extends RtpPayloadFormat {
                     }
                 }
 
-            } else if (MimeTypes.AUDIO_MP4.equals(sampleMimeType())) {
+            } else if (MimeTypes.AUDIO_MP4.equals(getSampleMimeType())) {
                 boolean cpresent = true;
                 if (parameters.contains(FormatSpecificParameter.CPRESENT) &&
-                        "0".equals(parameters.value(FormatSpecificParameter.CPRESENT))) {
+                        "0".equals(parameters.getValue(FormatSpecificParameter.CPRESENT))) {
                     cpresent = false;
                 }
 
-                String config = parameters.value(FormatSpecificParameter.CONFIG);
+                String config = parameters.getValue(FormatSpecificParameter.CONFIG);
                 if (config != null) {
                     try {
                         if (config.length() % 2 == 0) {
@@ -158,17 +158,17 @@ public final class RtpAudioPayload extends RtpPayloadFormat {
             maxptime = Format.NO_VALUE;
         }
 
-        public Builder channels(int channels) {
+        public Builder setChannels(int channels) {
             this.channels = channels;
             return this;
         }
 
-        public Builder ptime(long ptime) {
+        public Builder setPtime(long ptime) {
             this.ptime = ptime;
             return this;
         }
 
-        public Builder maxptime(long maxptime) {
+        public Builder setMaxPtime(long maxptime) {
             this.maxptime = ptime;
             return this;
         }
