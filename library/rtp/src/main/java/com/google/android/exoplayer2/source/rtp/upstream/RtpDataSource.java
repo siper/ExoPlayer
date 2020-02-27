@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.source.rtp.upstream;
 
 import androidx.annotation.IntDef;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.source.rtp.RtpPacket;
 import com.google.android.exoplayer2.source.rtp.rtcp.RtcpCompoundPacket;
 import com.google.android.exoplayer2.source.rtp.rtcp.RtcpPacket;
@@ -124,7 +125,7 @@ public final class RtpDataSource extends UdpDataSinkSource  {
                     return bytes.length;
                 }
 
-                return 0;
+                return C.RESULT_NOTHING_READ;
 
             } else {
 
@@ -161,7 +162,7 @@ public final class RtpDataSource extends UdpDataSinkSource  {
                     }
                 }
 
-                return 0;
+                return C.RESULT_NOTHING_READ;
             }
         }
 

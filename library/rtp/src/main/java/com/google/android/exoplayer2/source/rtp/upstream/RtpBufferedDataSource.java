@@ -77,7 +77,7 @@ public final class RtpBufferedDataSource extends UdpDataSource {
             };
 
             try {
-                timer.schedule(timerTask, 5000);
+                timer.schedule(timerTask, 12000);
             } catch (IllegalStateException ex) {
                 // Do nothing
             }
@@ -160,7 +160,7 @@ public final class RtpBufferedDataSource extends UdpDataSource {
                 return bytes.length;
             }
 
-            return 0;
+            return C.RESULT_NOTHING_READ;
         }
 
         if (canceled) {

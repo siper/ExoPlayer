@@ -792,7 +792,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
     updatePlaybackPositions();
 
     boolean renderersEnded = true;
-    boolean renderersAllowPlayback = true;
+    boolean renderersAllowPlayback = false;
     if (playingPeriodHolder.prepared) {
       long rendererPositionElapsedRealtimeUs = SystemClock.elapsedRealtime() * 1000;
       playingPeriodHolder.mediaPeriod.discardBuffer(
@@ -819,7 +819,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
                 && renderer.hasReadStreamToEnd();
         boolean allowsPlayback =
             isReadingAhead || isWaitingForNextStream || renderer.isReady() || renderer.isEnded();
-        renderersAllowPlayback = renderersAllowPlayback && allowsPlayback;
+        renderersAllowPlayback |= allowsPlayback;
         if (!allowsPlayback) {
           renderer.maybeThrowStreamError();
         }

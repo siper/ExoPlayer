@@ -806,8 +806,8 @@ public abstract class MediaCodecRenderer extends BaseRenderer {
       if (codec != null) {
         long drainStartTimeMs = SystemClock.elapsedRealtime();
         TraceUtil.beginSection("drainAndFeed");
-        while (drainOutputBuffer(positionUs, elapsedRealtimeUs)) {}
         while (feedInputBuffer() && shouldContinueFeeding(drainStartTimeMs)) {}
+        while (drainOutputBuffer(positionUs, elapsedRealtimeUs)) {}
         TraceUtil.endSection();
       } else {
         decoderCounters.skippedInputBufferCount += skipSource(positionUs);
