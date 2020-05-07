@@ -37,6 +37,8 @@ import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.util.Assertions;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 import static com.google.android.exoplayer2.C.TCP;
 
@@ -188,7 +190,7 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
 
         } catch (IOException e) {
             eventDispatcher.loadError(
-                new DataSpec(uri), uri, null, C.DATA_TYPE_MEDIA_INITIALIZATION,
+                new DataSpec(uri), uri, Collections.emptyMap(), C.DATA_TYPE_MEDIA_INITIALIZATION,
                 0, 0, 0, e, false);
         }
     }
@@ -212,7 +214,7 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
     @Override
     public void onMediaDescriptionTypeUnSupported(MediaType mediaType) {
         if (eventDispatcher != null) {
-            eventDispatcher.loadError(new DataSpec(uri), uri, null, C.DATA_TYPE_MANIFEST,
+            eventDispatcher.loadError(new DataSpec(uri), uri, Collections.emptyMap(), C.DATA_TYPE_MANIFEST,
                 0, 0, 0,
                     new IOException("Media Description Type [" + mediaType + "] is not supported"),
                     false);
@@ -227,7 +229,7 @@ public final class RtspMediaSource extends BaseMediaSource implements Client.Eve
     @Override
     public void onClientError(Throwable throwable) {
         if (eventDispatcher != null) {
-            eventDispatcher.loadError(new DataSpec(uri), uri, null, C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE,
+            eventDispatcher.loadError(new DataSpec(uri), uri, Collections.emptyMap(), C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE,
                 0, 0, 0, (IOException) throwable, false);
         }
     }
