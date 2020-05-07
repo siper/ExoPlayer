@@ -62,6 +62,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -871,26 +872,26 @@ public abstract class Client implements Dispatcher.EventListener {
             }
 
             close();
-            listener.onClientError(null);
+            listener.onClientError(ClientException.unknownException());
         }
     }
 
     @Override
     public final void onMalformedResponse(Response response) {
         close();
-        listener.onClientError(null);
+        listener.onClientError(ClientException.malformedResponseException());
     }
 
     @Override
     public final void onIOError() {
         close();
-        listener.onClientError(null);
+        listener.onClientError(ClientException.ioException());
     }
 
     @Override
     public final void onRequestTimeOut() {
         close();
-        listener.onClientError(null);
+        listener.onClientError(ClientException.timeoutException());
     }
 
     @Override
@@ -903,7 +904,7 @@ public abstract class Client implements Dispatcher.EventListener {
         }
 
         close();
-        listener.onClientError(null);
+        listener.onClientError(ClientException.noResponseException());
     }
 
     protected abstract void sendOptionsRequest();
