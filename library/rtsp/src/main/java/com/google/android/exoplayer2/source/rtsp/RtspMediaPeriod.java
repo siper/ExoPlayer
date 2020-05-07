@@ -40,6 +40,7 @@ import com.google.android.exoplayer2.util.TrackIdGenerator;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -319,8 +320,8 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE;
         callback.onPrepared(this);
 
       } else {
-        eventDispatcher.loadError(new DataSpec(session.getUri()), session.getUri(), null,
-            DATA_TYPE_MEDIA_INITIALIZATION, 0, 0, 0, null,
+        eventDispatcher.loadError(new DataSpec(session.getUri()), session.getUri(), Collections.emptyMap(),
+            DATA_TYPE_MEDIA_INITIALIZATION, 0, 0, 0, new IOException("Media stream prepare failure"),
             false);
       }
     }
@@ -352,7 +353,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE;
         prepared = false;
         session.close();
 
-        eventDispatcher.loadCanceled(new DataSpec(session.getUri()), session.getUri(), null,
+        eventDispatcher.loadCanceled(new DataSpec(session.getUri()), session.getUri(), Collections.emptyMap(),
             DATA_TYPE_MEDIA_PROGRESSIVE_LIVE, 0, session.getDuration(), 0);
       }
     }
@@ -367,7 +368,7 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE;
         prepared = false;
         session.close();
 
-        eventDispatcher.loadCompleted(new DataSpec(session.getUri()), session.getUri(), null,
+        eventDispatcher.loadCompleted(new DataSpec(session.getUri()), session.getUri(), Collections.emptyMap(),
             DATA_TYPE_MEDIA_PROGRESSIVE_LIVE, 0, session.getDuration(), 0);
       }
     }
@@ -383,8 +384,8 @@ import static com.google.android.exoplayer2.C.DATA_TYPE_MEDIA_PROGRESSIVE_LIVE;
         prepared = false;
         session.close();
 
-        eventDispatcher.loadError(new DataSpec(session.getUri()), session.getUri(), null,
-            DATA_TYPE_MEDIA_PROGRESSIVE_LIVE, 0, session.getDuration(), 0, null, false);
+        eventDispatcher.loadError(new DataSpec(session.getUri()), session.getUri(), Collections.emptyMap(),
+            DATA_TYPE_MEDIA_PROGRESSIVE_LIVE, 0, session.getDuration(), 0, new IOException("Media stream playback failure"), false);
 
         if (!session.isInFallback()) {
           fallbackPolicy.retryIfAllowError(error);
